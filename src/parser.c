@@ -9,7 +9,7 @@
 #include "json.h"
 
 // ÒÆ³ýÎÞÓÃ×Ö·û
-int removeUseless(const char* src, char** dst)
+int slow_remove_useless(const char* src, char** dst)
 {
 	if (src == NULL) return -1;
 
@@ -32,18 +32,18 @@ int removeUseless(const char* src, char** dst)
 	return 0;
 }
 
-int parseNull(char** src, JsonNull* objNull)
+int slow_parse_null(char** src, slow_null_t* objNull)
 {
 	if (src == NULL || *src == NULL) return -1;
 
-	if (validNull(*src) != 0) return -1;
+	if (slow_valid_null(*src) != 0) return -1;
 	
 	objNull->flag = 1;
 	*src += 4;
 	return 0;
 }
 
-int validNull(char* src)
+int slow_valid_null(char* src)
 {
 	if (src == NULL) return -1;
 
@@ -56,18 +56,18 @@ int validNull(char* src)
 }
 
 
-int parseTrue(char** src, JsonTrue* objTrue)
+int slow_parse_true(char** src, slow_true_t* objTrue)
 {
 	if (src == NULL || *src == NULL) return -1;
 
-	if (validTrue(*src) != 0) return -1;
+	if (slow_valid_true(*src) != 0) return -1;
 
 	objTrue->flag = 1;
 	*src += 4;
 	return 0;
 }
 
-int validTrue(char* src) 
+int slow_valid_true(char* src) 
 {
 	if (src == NULL) return -1;
 
@@ -79,18 +79,18 @@ int validTrue(char* src)
 	return 0;
 }
 
-int parseFalse(char** src, JsonFalse* objFalse)
+int slow_parse_false(char** src, slow_false_t* objFalse)
 {
 	if (src == NULL || *src == NULL) return -1;
 
-	if (validFalse(*src) != 0) return -1;
+	if (slow_valid_false(*src) != 0) return -1;
 
 	objFalse->flag = 1;
 	*src += 5;
 	return 0;
 }
 
-int validFalse(char* src)
+int slow_valid_false(char* src)
 {
 	if (src == NULL) return -1;
 
@@ -102,11 +102,11 @@ int validFalse(char* src)
 	return 0;
 }
 
-int parseNumber(char** src, JsonNumber* objNumber)
+int slow_parse_number(char** src, slow_number_t* objNumber)
 {
 	if (src == NULL || *src == NULL) return -1;
 	int count = 0, hasDot = 0;
-	if (validNumber(*src, &count, &hasDot) != 0) return -1;
+	if (slow_valid_number(*src, &count, &hasDot) != 0) return -1;
 
 	if (hasDot == 0) hasDot = count;
 
@@ -130,7 +130,7 @@ int parseNumber(char** src, JsonNumber* objNumber)
 	return 0;
 }
 
-int validNumber(char* src, int* count, int* hasDot)
+int slow_valid_number(char* src, int* count, int* hasDot)
 {
 	if (src == NULL) return -1;
 
@@ -164,12 +164,12 @@ int validNumber(char* src, int* count, int* hasDot)
 	return 0;
 }
 
-int parseString(char** src, JsonString* objString, int isKey)
+int slow_parse_string(char** src, slow_string_t* objString, int isKey)
 {
 	if (src == NULL || *src == NULL) return -1;
 
 	int count = 0;
-	if (validString(*src, &count, isKey) != 0) return -1;
+	if (slow_valid_string(*src, &count, isKey) != 0) return -1;
 
 	objString->p = (char*)malloc(count + 1);
 	memcpy(objString->p, (*src) + 1, count);
@@ -180,7 +180,7 @@ int parseString(char** src, JsonString* objString, int isKey)
 	return 0;
 }
 
-int validString(char* src, int* count, int isKey)
+int slow_valid_string(char* src, int* count, int isKey)
 {
 	if (src == NULL) return -1;
 
@@ -208,29 +208,29 @@ int validString(char* src, int* count, int isKey)
 	return 0;
 }
 
-int parseKeyValue(char** src, JsonKeyValue* objKeyValue)
+int slow_parse_key_value(char** src, slow_kv_t* objKeyValue)
 {
 	if (src == NULL || *src == NULL) return -1;
 
-	if (checkJsonType(*src) != JT_STRING) return -1;
-	if (parseString(src, &(objKeyValue->key), 1) != 0) return -1;
+	if (slow_check_type(*src) != ST_STRING) return -1;
+	if (slow_parse_string(src, &(objKeyValue->key), 1) != 0) return -1;
 
-	if (checkJsonType(*src) != JT_COLON) return -1;
+	if (slow_check_type(*src) != ST_COLON) return -1;
 	*src += 1;
 
-	if (parseBase(src, &(objKeyValue->value)) != 0) return -1;
+	if (slow_parse_base(src, &(objKeyValue->value)) != 0) return -1;
 
 	return 0;
 }
 
-int parseObject(char** src, JsonObject* ptrObject)
+int slow_parse_object(char** src, slow_object_t* ptrObject)
 {
 	if (src == NULL || *src == NULL) return -1;
 
-	if (checkJsonType(*src) != JT_OBJECT) return -1;
+	if (slow_check_type(*src) != ST_OBJECT) return -1;
 	*src += 1;
 
-	if (checkJsonType(*src) == JT_OBJECT_END)
+	if (slow_check_type(*src) == ST_OBJECT_END)
 	{
 		*src += 1;
 		return 0;
@@ -238,50 +238,50 @@ int parseObject(char** src, JsonObject* ptrObject)
 
 	while (1)
 	{
-		JsonKVList* node = (JsonKVList*)malloc(sizeof(JsonKVList));
+		slow_kv_list_t* node = (slow_kv_list_t*)malloc(sizeof(slow_kv_list_t));
 		if (node == NULL)
 		{
-			releaseJsonObject(ptrObject);
+			slow_release_object(ptrObject);
 			return -1;
 		}
 
-		if (parseKeyValue(src, &(node->node)) != 0)
+		if (slow_parse_key_value(src, &(node->node)) != 0)
 		{
 			free(node);
-			releaseJsonObject(ptrObject);
+			slow_release_object(ptrObject);
 			return -1;
 		}
 
 		node->next = ptrObject->next;
 		ptrObject->next = node;
 
-		if (checkJsonType(*src) == JT_DOT)
+		if (slow_check_type(*src) == ST_DOT)
 		{
 			*src += 1;
 			continue;
 		}
-		else if (checkJsonType(*src) == JT_OBJECT_END) 
+		else if (slow_check_type(*src) == ST_OBJECT_END) 
 		{
 			*src += 1;
 			break;
 		}
 		else
 		{
-			releaseJsonObject(ptrObject);
+			slow_release_object(ptrObject);
 			return -1;
 		}
 	}
 	return 0;
 }
 
-int parseArray(char** src, JsonArray* ptrArray)
+int slow_parse_array(char** src, slow_array_t* ptrArray)
 {
 	if (src == NULL || *src == NULL) return -1;
 
-	if (checkJsonType(*src) != JT_ARRAY) return -1;
+	if (slow_check_type(*src) != ST_ARRAY) return -1;
 	*src += 1;
 
-	if (checkJsonType(*src) == JT_ARRAY_END)
+	if (slow_check_type(*src) == ST_ARRAY_END)
 	{
 		*src += 1;
 		return 0;
@@ -289,111 +289,111 @@ int parseArray(char** src, JsonArray* ptrArray)
 
 	while (1)
 	{
-		JsonBaseList* jbl = (JsonBaseList*)malloc(sizeof(JsonBaseList));
+		slow_base_list_t* jbl = (slow_base_list_t*)malloc(sizeof(slow_base_list_t));
 		if (jbl == NULL) return -1;
 
-		if (parseBase(src, &(jbl->node)) != 0) return -1;
+		if (slow_parse_base(src, &(jbl->node)) != 0) return -1;
 		jbl->next = ptrArray->next;
 		ptrArray->next = jbl;
 
-		if (checkJsonType(*src) == JT_DOT)
+		if (slow_check_type(*src) == ST_DOT)
 		{
 			*src += 1;
 			continue;
 		}
-		else if (checkJsonType(*src) == JT_ARRAY_END)
+		else if (slow_check_type(*src) == ST_ARRAY_END)
 		{
 			*src += 1;
 			break;
 		}
 		else
 		{
-			releaseJsonArray(ptrArray);
+			slow_release_array(ptrArray);
 			return -1;
 		}
 	}
 	return 0;
 }
 
-int checkJsonType(char* src)
+int slow_check_type(char* src)
 {
 	if (src == NULL) return -1;
 
-	if (*src == 'n') return JT_NULL;
-	else if (*src == 'f') return JT_FALSE;
-	else if (*src == 't') return JT_TRUE;
-	else if (isdigit(*src)) return JT_NUMBER;
-	else if (*src == '"') return JT_STRING;
-	else if (*src == '{') return JT_OBJECT;
-	else if (*src == '[') return JT_ARRAY;
-	else if (*src == ',') return JT_DOT;
-	else if (*src == ':') return JT_COLON;
-	else if (*src == '}') return JT_OBJECT_END;
-	else if (*src == ']') return JT_ARRAY_END;
-	else return JT_NONE;
+	if (*src == 'n') return ST_NULL;
+	else if (*src == 'f') return ST_FALSE;
+	else if (*src == 't') return ST_TRUE;
+	else if (isdigit(*src)) return ST_NUMBER;
+	else if (*src == '"') return ST_STRING;
+	else if (*src == '{') return ST_OBJECT;
+	else if (*src == '[') return ST_ARRAY;
+	else if (*src == ',') return ST_DOT;
+	else if (*src == ':') return ST_COLON;
+	else if (*src == '}') return ST_OBJECT_END;
+	else if (*src == ']') return ST_ARRAY_END;
+	else return ST_NONE;
 }
 
-int parseBase(char** src, JsonBase* objBase)
+int slow_parse_base(char** src, slow_base_t* objBase)
 {
 	if (src == NULL || *src == NULL) return -1;
 
-	int jsonType = checkJsonType(*src);
-	if (jsonType == JT_NULL)
+	int jsonType = slow_check_type(*src);
+	if (jsonType == ST_NULL)
 	{
-		JsonNull *jn = (JsonNull*)malloc(sizeof(JsonNull));
+		slow_null_t *jn = (slow_null_t*)malloc(sizeof(slow_null_t));
 		if (jn == NULL) return -1;
-		if (parseNull(src, jn) != 0) return -1;
-		objBase->type = JT_NULL;
+		if (slow_parse_null(src, jn) != 0) return -1;
+		objBase->type = ST_NULL;
 		objBase->p = (void*)jn;
 	}
-	else if (jsonType == JT_FALSE)
+	else if (jsonType == ST_FALSE)
 	{
-		JsonFalse *jf = (JsonFalse*)malloc(sizeof(JsonFalse));
+		slow_false_t *jf = (slow_false_t*)malloc(sizeof(slow_false_t));
 		if (jf == NULL) return -1;
-		if (parseFalse(src, jf) != 0) return -1;
-		objBase->type = JT_FALSE;
+		if (slow_parse_false(src, jf) != 0) return -1;
+		objBase->type = ST_FALSE;
 		objBase->p = (void*)jf;
 	}
-	else if (jsonType == JT_TRUE)
+	else if (jsonType == ST_TRUE)
 	{
-		JsonTrue *jt = (JsonTrue*)malloc(sizeof(JsonTrue));
+		slow_true_t *jt = (slow_true_t*)malloc(sizeof(slow_true_t));
 		if (jt == NULL) return -1;
-		if (parseTrue(src, jt) != 0) return -1;
-		objBase->type = JT_TRUE;
+		if (slow_parse_true(src, jt) != 0) return -1;
+		objBase->type = ST_TRUE;
 		objBase->p = (void*)jt;
 	}
-	else if (jsonType == JT_NUMBER)
+	else if (jsonType == ST_NUMBER)
 	{
-		JsonNumber *jn = (JsonNumber*)malloc(sizeof(JsonNumber));
+		slow_number_t *jn = (slow_number_t*)malloc(sizeof(slow_number_t));
 		if (jn == NULL) return -1;
-		if (parseNumber(src, jn) != 0) return -1;
-		objBase->type = JT_NUMBER;
+		if (slow_parse_number(src, jn) != 0) return -1;
+		objBase->type = ST_NUMBER;
 		objBase->p = (void*)jn;
 	}
-	else if (jsonType == JT_STRING)
+	else if (jsonType == ST_STRING)
 	{
-		JsonString *js = (JsonString*)malloc(sizeof(JsonString));
+		slow_string_t *js = (slow_string_t*)malloc(sizeof(slow_string_t));
 		if (js == NULL) return -1;
-		if (parseString(src, js, 0) != 0) return -1;
-		objBase->type = JT_STRING;
+		if (slow_parse_string(src, js, 0) != 0) return -1;
+		objBase->type = ST_STRING;
 		objBase->p = (void*)js;
 	}
-	else if (jsonType == JT_OBJECT)
+	else if (jsonType == ST_OBJECT)
 	{
-		JsonObject *jo = (JsonObject*)malloc(sizeof(JsonObject));
+		slow_object_t *jo = (slow_object_t*)malloc(sizeof(slow_object_t));
 		if (jo == NULL) return -1;
-		initJsonObject(jo);
-		if (parseObject(src, jo) != 0) return -1;
-		objBase->type = JT_OBJECT;
+		slow_init_object(jo);
+		if (slow_parse_object(src, jo) != 0) return -1;
+		objBase->type = ST_OBJECT;
 		objBase->p = (void*)jo;
 	}
-	else if (jsonType == JT_ARRAY)
+	else if (jsonType == ST_ARRAY)
 	{
-		JsonArray *ja = (JsonArray*)malloc(sizeof(JsonArray));
+		slow_array_t *ja = (slow_array_t*)malloc(sizeof(slow_array_t));
 		if (ja == NULL) return -1;
-		initJsonArray(ja);
-		if (parseArray(src, ja) != 0) return -1;
-		objBase->type = JT_ARRAY;
+		slow_init_array(ja);
+		if (slow_parse_array(src, ja) != 0) return -1;
+		objBase->type = ST_ARRAY;
 		objBase->p = (void*)ja;
 	}
 	else
@@ -403,7 +403,7 @@ int parseBase(char** src, JsonBase* objBase)
 	return 0;
 }
 
-int cmpJsonString(JsonString* s, const char* str)
+int slow_cmp_string(slow_string_t* s, const char* str)
 {
 	if (s == NULL || str == NULL) return -1;
 
@@ -415,7 +415,7 @@ int cmpJsonString(JsonString* s, const char* str)
 	return 0;
 }
 
-int cmpJsonNumber(JsonNumber* n, double d)
+int slow_cmp_number(slow_number_t* n, double d)
 {
 	if (n == NULL) return -1;
 

@@ -5,35 +5,35 @@
 #include <stdlib.h>
 #include <string.h>
 
-int initJsonNull(JsonNull* ptrNull)
+int slow_init_null(slow_null_t* ptrNull)
 {
 	if (ptrNull == NULL) return -1;
 	ptrNull->flag = 1;
 	return 0;
 }
 
-int initJsonFalse(JsonFalse* ptrFalse)
+int slow_init_false(slow_false_t* ptrFalse)
 {
 	if (ptrFalse == NULL) return -1;
 	ptrFalse->flag = 1;
 	return 0;
 }
 
-int initJsonTrue(JsonTrue* ptrTrue)
+int slow_init_true(slow_true_t* ptrTrue)
 {
 	if (ptrTrue == NULL) return -1;
 	ptrTrue->flag = 1;
 	return 0;
 }
 
-int initJsonNumber(JsonNumber* ptrNumber, double d)
+int slow_init_number(slow_number_t* ptrNumber, double d)
 {
 	if (ptrNumber == NULL) return -1;
 	ptrNumber->d = d;
 	return 0;
 }
 
-int initJsonString(JsonString* ptrString, const char* s)
+int slow_init_string(slow_string_t* ptrString, const char* s)
 {
 	if (ptrString == NULL || s == NULL) return -1;
 	int len = strlen(s);
@@ -45,21 +45,21 @@ int initJsonString(JsonString* ptrString, const char* s)
 	return 0;
 }
 
-int initJsonObject(JsonObject* ptrObject)
+int slow_init_object(slow_object_t* ptrObject)
 {
 	if (ptrObject == NULL) return -1;
 	ptrObject->next = NULL;
 	return 0;
 }
 
-int initJsonArray(JsonArray* ptrArray)
+int slow_init_array(slow_array_t* ptrArray)
 {
 	if (ptrArray == NULL) return -1;
 	ptrArray->next = NULL;
 	return 0;
 }
 
-int initJsonRetString(JsonRetString* ptr)
+int slow_init_ret_string(slow_ret_string_t* ptr)
 {
 	if (ptr == NULL) return -1;
 	ptr->offset = 0;
@@ -69,7 +69,7 @@ int initJsonRetString(JsonRetString* ptr)
 	return 0;
 }
 
-int checkJsonRetStringSize(JsonRetString* ptr, int size)
+int slow_check_ret_string_size(slow_ret_string_t* ptr, int size)
 {
 	if (ptr == NULL || size < 0) return -1;
 	if (ptr->offset + size <= ptr->size) return 0;
@@ -80,16 +80,16 @@ int checkJsonRetStringSize(JsonRetString* ptr, int size)
 	return 0;
 }
 
-int ObjectGetBase(JsonObject* ptrObject, const char* k, JsonBase** b)
+int slow_object_get_base(slow_object_t* ptrObject, const char* k, slow_base_t** b)
 {
 	if (ptrObject == NULL || k == NULL) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (1)
 	{
 		if (temp == NULL) return -1;
-		JsonKeyValue* node = &temp->node;
-		if (cmpJsonString(&node->key, k) == 0)
+		slow_kv_t* node = &temp->node;
+		if (slow_cmp_string(&node->key, k) == 0)
 		{
 			*b = &node->value;
 			return 0;
@@ -99,16 +99,16 @@ int ObjectGetBase(JsonObject* ptrObject, const char* k, JsonBase** b)
 	return -1;
 }
 
-int ObjectGetNull(JsonObject* ptrObject, const char* k, int* n)
+int slow_object_get_null(slow_object_t* ptrObject, const char* k, int* n)
 {
 	if (ptrObject == NULL || k == NULL) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (1)
 	{
 		if (temp == NULL) return -1;
-		JsonKeyValue* node = &temp->node;
-		if (cmpJsonString(&node->key, k) == 0 && node->value.type == JT_NULL)
+		slow_kv_t* node = &temp->node;
+		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_NULL)
 		{
 			*n = 1;
 			return 0;
@@ -118,21 +118,21 @@ int ObjectGetNull(JsonObject* ptrObject, const char* k, int* n)
 	return -1;
 }
 
-int ObjectGetBool(JsonObject* ptrObject, const char* k, int* b)
+int slow_object_get_bool(slow_object_t* ptrObject, const char* k, int* b)
 {
 	if (ptrObject == NULL || k == NULL) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (1)
 	{
 		if (temp == NULL) return -1;
-		JsonKeyValue* node = &temp->node;
-		if (cmpJsonString(&node->key, k) == 0 && node->value.type == JT_FALSE)
+		slow_kv_t* node = &temp->node;
+		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_FALSE)
 		{
 			*b = 0;
 			return 0;
 		}
-		if (cmpJsonString(&node->key, k) == 0 && node->value.type == JT_TRUE)
+		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_TRUE)
 		{
 			*b = 1;
 			return 0;
@@ -142,18 +142,18 @@ int ObjectGetBool(JsonObject* ptrObject, const char* k, int* b)
 	return -1;
 }
 
-int ObjectGetNumber(JsonObject* ptrObject, const char* k, double* d)
+int slow_object_get_number(slow_object_t* ptrObject, const char* k, double* d)
 {
 	if (ptrObject == NULL || k == NULL) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (1)
 	{
 		if (temp == NULL) return -1;
-		JsonKeyValue* node = &temp->node;
-		if (cmpJsonString(&node->key, k) == 0 && node->value.type == JT_NUMBER)
+		slow_kv_t* node = &temp->node;
+		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_NUMBER)
 		{
-			*d = ((JsonNumber*)node->value.p)->d;
+			*d = ((slow_number_t*)node->value.p)->d;
 			return 0;
 		}
 		temp = temp->next;
@@ -161,18 +161,18 @@ int ObjectGetNumber(JsonObject* ptrObject, const char* k, double* d)
 	return -1;
 }
 
-int ObjectGetString(JsonObject* ptrObject, const char* k, JsonString** s)
+int slow_object_get_string(slow_object_t* ptrObject, const char* k, slow_string_t** s)
 {
 	if (ptrObject == NULL || k == NULL) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (1)
 	{
 		if (temp == NULL) return -1;
-		JsonKeyValue* node = &temp->node;
-		if (cmpJsonString(&node->key, k) == 0 && node->value.type == JT_STRING)
+		slow_kv_t* node = &temp->node;
+		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_STRING)
 		{
-			*s = (JsonString*)node->value.p;
+			*s = (slow_string_t*)node->value.p;
 			return 0;
 		}
 		temp = temp->next;
@@ -180,18 +180,18 @@ int ObjectGetString(JsonObject* ptrObject, const char* k, JsonString** s)
 	return -1;
 }
 
-int ObjectGetObject(JsonObject* ptrObject, const char* k, JsonObject** o)
+int slow_object_get_object(slow_object_t* ptrObject, const char* k, slow_object_t** o)
 {
 	if (ptrObject == NULL || k == NULL) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (1)
 	{
 		if (temp == NULL) return -1;
-		JsonKeyValue* node = &temp->node;
-		if (cmpJsonString(&node->key, k) == 0 && node->value.type == JT_OBJECT)
+		slow_kv_t* node = &temp->node;
+		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_OBJECT)
 		{
-			*o = (JsonObject*)node->value.p;
+			*o = (slow_object_t*)node->value.p;
 			return 0;
 		}
 		temp = temp->next;
@@ -199,18 +199,18 @@ int ObjectGetObject(JsonObject* ptrObject, const char* k, JsonObject** o)
 	return -1;
 }
 
-int ObjectGetArray(JsonObject* ptrObject, const char* k, JsonArray** a)
+int slow_object_get_array(slow_object_t* ptrObject, const char* k, slow_array_t** a)
 {
 	if (ptrObject == NULL || k == NULL) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (1)
 	{
 		if (temp == NULL) return -1;
-		JsonKeyValue* node = &temp->node;
-		if (cmpJsonString(&node->key, k) == 0 && node->value.type == JT_ARRAY)
+		slow_kv_t* node = &temp->node;
+		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_ARRAY)
 		{
-			*a = (JsonArray*)node->value.p;
+			*a = (slow_array_t*)node->value.p;
 			return 0;
 		}
 		temp = temp->next;
@@ -218,11 +218,11 @@ int ObjectGetArray(JsonObject* ptrObject, const char* k, JsonArray** a)
 	return -1;
 }
 
-int ArraySize(JsonArray* ptrArray)
+int slow_array_get_size(slow_array_t* ptrArray)
 {
 	if (ptrArray == NULL) return 0;
 
-	JsonBaseList* temp = ptrArray->next;
+	slow_base_list_t* temp = ptrArray->next;
 	int count = 0;
 	while (temp)
 	{
@@ -232,11 +232,11 @@ int ArraySize(JsonArray* ptrArray)
 	return count;
 }
 
-int ArrayGetByIndex(JsonArray* ptrArray, int index, JsonBase** b)
+int slow_array_get_by_index(slow_array_t* ptrArray, int index, slow_base_t** b)
 {
 	if (ptrArray == NULL) return -1;
 
-	JsonBaseList* temp = ptrArray->next;
+	slow_base_list_t* temp = ptrArray->next;
 	int count = 0;
 	while (temp)
 	{
@@ -251,46 +251,46 @@ int ArrayGetByIndex(JsonArray* ptrArray, int index, JsonBase** b)
 	return -1;
 }
 
-int releaseJsonBase(JsonBase *ptrBase)
+int slow_release_base(slow_base_t *ptrBase)
 {
 	if (ptrBase == NULL) return -1;
 
-	if (ptrBase->type == JT_NULL)
+	if (ptrBase->type == ST_NULL)
 	{
-		free((JsonNull*)ptrBase->p);
+		free((slow_null_t*)ptrBase->p);
 	}
-	else if (ptrBase->type == JT_FALSE)
+	else if (ptrBase->type == ST_FALSE)
 	{
-		free((JsonFalse*)ptrBase->p);
+		free((slow_false_t*)ptrBase->p);
 	}
-	else if (ptrBase->type == JT_TRUE)
+	else if (ptrBase->type == ST_TRUE)
 	{
-		free((JsonTrue*)ptrBase->p);
+		free((slow_true_t*)ptrBase->p);
 	}
-	else if (ptrBase->type == JT_NUMBER)
+	else if (ptrBase->type == ST_NUMBER)
 	{
-		free((JsonNumber*)ptrBase->p);
+		free((slow_number_t*)ptrBase->p);
 	}
-	else if (ptrBase->type == JT_STRING)
+	else if (ptrBase->type == ST_STRING)
 	{
-		free((JsonString*)ptrBase->p);
+		free((slow_string_t*)ptrBase->p);
 	}
-	else if (ptrBase->type == JT_KEY_VALUE)
+	else if (ptrBase->type == ST_KEY_VALUE)
 	{
-		JsonKeyValue* jkv = (JsonKeyValue*)ptrBase->p;
-		releaseJsonKeyValue(jkv);
+		slow_kv_t* jkv = (slow_kv_t*)ptrBase->p;
+		slow_release_key_value(jkv);
 		free(jkv);
 	}
-	else if (ptrBase->type == JT_OBJECT)
+	else if (ptrBase->type == ST_OBJECT)
 	{
-		JsonObject* jo = (JsonObject*)ptrBase->p;
-		releaseJsonObject(jo);
+		slow_object_t* jo = (slow_object_t*)ptrBase->p;
+		slow_release_object(jo);
 		free(jo);
 	}
-	else if (ptrBase->type == JT_ARRAY)
+	else if (ptrBase->type == ST_ARRAY)
 	{
-		JsonArray* ja = (JsonArray*)ptrBase->p;
-		releaseJsonArray(ja);
+		slow_array_t* ja = (slow_array_t*)ptrBase->p;
+		slow_release_array(ja);
 		free(ja);
 	}
 	else
@@ -300,7 +300,7 @@ int releaseJsonBase(JsonBase *ptrBase)
 	return 0;
 }
 
-int releaseJsonString(JsonString* ptrString)
+int slow_release_string(slow_string_t* ptrString)
 {
 	if (ptrString == NULL) return -1;
 
@@ -312,44 +312,44 @@ int releaseJsonString(JsonString* ptrString)
 	return 0;
 }
 
-int releaseJsonKeyValue(JsonKeyValue* ptrKeyValue)
+int slow_release_key_value(slow_kv_t* ptrKeyValue)
 {
 	if (ptrKeyValue == NULL) return -1;
 
-	releaseJsonBase(&(ptrKeyValue->value));
+	slow_release_base(&(ptrKeyValue->value));
 
 	return 0;
 }
 
-int releaseJsonObject(JsonObject *ptrObject)
+int slow_release_object(slow_object_t *ptrObject)
 {
 	if (ptrObject == NULL) return -1;
 
 	while (ptrObject->next)
 	{
-		JsonKVList* jkvl = ptrObject->next;
+		slow_kv_list_t* jkvl = ptrObject->next;
 		ptrObject->next = jkvl->next;
-		releaseJsonKeyValue(&(jkvl->node));
+		slow_release_key_value(&(jkvl->node));
 		free(jkvl);
 	}
 	return 0;
 }
 
-int releaseJsonArray(JsonArray* ptrArray)
+int slow_release_array(slow_array_t* ptrArray)
 {
 	if (ptrArray == NULL) return -1;
 
 	while (ptrArray->next)
 	{
-		JsonBaseList* jbl = ptrArray->next;
+		slow_base_list_t* jbl = ptrArray->next;
 		ptrArray->next = jbl->next;
-		releaseJsonBase(&(jbl->node));
+		slow_release_base(&(jbl->node));
 		free(jbl);
 	}
 	return 0;
 }
 
-int releaseJsonRetString(JsonRetString* ptrRetString)
+int slow_release_ret_string(slow_ret_string_t* ptrRetString)
 {
 	if (ptrRetString == NULL) return -1;
 

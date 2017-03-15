@@ -7,6 +7,7 @@
 #define MAX_SIZE 4096
 char buffer[MAX_SIZE];
 
+/*
 int main(int argc, char** argv)
 {
 	if (argc != 3)
@@ -48,10 +49,10 @@ int main(int argc, char** argv)
 	}
 	buffer[inSize] = '\0';
 
-	JsonObject jo;
-	initJsonObject(&jo);
+	slow_object_t jo;
+	slow_init_object(&jo);
 	
-	if (toJsonObject(buffer, &jo) != 0) 
+	if (slow_raw2object(buffer, &jo) != 0) 
 	{
 		fclose(inFile);
 		fclose(outFile);
@@ -60,47 +61,47 @@ int main(int argc, char** argv)
 	}
 
 	double d1 = 0;
-	if (ObjectGetNumber(&jo, "s", &d1) == 0) printf("%lf\n", d1);
+	if (slow_object_get_number(&jo, "s", &d1) == 0) printf("%lf\n", d1);
 
 	double d2 = 0;
-	if (ObjectGetNumber(&jo, "r", &d2) == 0) printf("%lf\n", d2);
+	if (slow_object_get_number(&jo, "r", &d2) == 0) printf("%lf\n", d2);
 
-	JsonString* s1;
-	if (ObjectGetString(&jo, "k", &s1) == 0) printf("%s\n", s1->p);
+	slow_string_t* s1;
+	if (slow_object_get_string(&jo, "k", &s1) == 0) printf("%s\n", s1->p);
 
-	JsonObject* sjo = NULL;
-	if (ObjectGetObject(&jo, "c", &sjo) == 0 && sjo != NULL)
+	slow_object_t* sjo = NULL;
+	if (slow_object_get_object(&jo, "c", &sjo) == 0 && sjo != NULL)
 	{
 		int n1 = 0;
-		if (ObjectGetNull(sjo, "c", &n1) == 0) printf("%d\n", n1);
+		if (slow_object_get_null(sjo, "c", &n1) == 0) printf("%d\n", n1);
 
 		int n2 = 0;
-		if (ObjectGetBool(sjo, "r", &n2) == 0) printf("%d\n", n2);
+		if (slow_object_get_bool(sjo, "r", &n2) == 0) printf("%d\n", n2);
 
-		JsonArray* ja1 = NULL;
-		if (ObjectGetArray(sjo, "v", &ja1) == 0 && ja1 != NULL)
+		slow_array_t* ja1 = NULL;
+		if (slow_object_get_array(sjo, "v", &ja1) == 0 && ja1 != NULL)
 		{
-			int count = ArraySize(ja1);
+			int count = slow_array_get_size(ja1);
 			int i;
 			for (i = 0; i < count; ++i)
 			{
-				JsonBase* jb1 = NULL;
-				if (ArrayGetByIndex(ja1, i, &jb1) == 0)
+				slow_base_t* jb1 = NULL;
+				if (slow_array_get_by_index(ja1, i, &jb1) == 0)
 				{
-					if (jb1->type == JT_NUMBER)
+					if (jb1->type == ST_NUMBER)
 					{
-						printf("%lf\n", ((JsonNumber*)jb1->p)->d);
+						printf("%lf\n", ((slow_number_t*)jb1->p)->d);
 					}
-					else if (jb1->type == JT_TRUE)
+					else if (jb1->type == ST_TRUE)
 					{
 						printf("true\n");
 					}
-					else if (jb1->type == JT_ARRAY)
+					else if (jb1->type == ST_ARRAY)
 					{ }
 				}
 			}
-			JsonBase* jb1 = NULL;
-			if (ArrayGetByIndex(ja1, 0, &jb1) == 0)
+			slow_base_t* jb1 = NULL;
+			if (slow_array_get_by_index(ja1, 0, &jb1) == 0)
 			{
 
 			}
@@ -108,7 +109,7 @@ int main(int argc, char** argv)
 	}
 
 	char* temp = NULL;
-	if (OtoString(&temp, &jo) != 0)
+	if (slow_object2raw(&temp, &jo) != 0)
 	{
 		fclose(inFile);
 		fclose(outFile);
@@ -133,3 +134,4 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+*/

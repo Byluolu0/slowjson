@@ -1,129 +1,129 @@
 #ifndef _JSON_H_
 #define _JSON_H_
 
-enum JsonType
+enum slow_type
 {
-	JT_NONE = 0,
-	JT_NULL,
-	JT_FALSE,
-	JT_TRUE,
-	JT_NUMBER,
-	JT_STRING,
-	JT_KEY_VALUE,
-	JT_OBJECT,
-	JT_ARRAY,
-	JT_DOT,
-	JT_COLON,
-	JT_OBJECT_END,
-	JT_ARRAY_END,
+	ST_NONE = 0,
+	ST_NULL,
+	ST_FALSE,
+	ST_TRUE,
+	ST_NUMBER,
+	ST_STRING,
+	ST_KEY_VALUE,
+	ST_OBJECT,
+	ST_ARRAY,
+	ST_DOT,
+	ST_COLON,
+	ST_OBJECT_END,
+	ST_ARRAY_END,
 };
 
-struct JsonBaseS
+struct slow_base_s
 {
 	char type;
 	void* p;
 };
-typedef struct JsonBaseS JsonBase;
+typedef struct slow_base_s slow_base_t;
 
-struct JsonNullS
+struct slow_null_s
 {
 	int flag;
 };
-typedef struct JsonNullS JsonNull;
+typedef struct slow_null_s slow_null_t;
 
-struct JsonFalseS
+struct slow_false_s
 {
 	int flag;
 };
-typedef struct JsonFalseS JsonFalse;
+typedef struct slow_false_s slow_false_t;
 
-struct JsonTrueS
+struct slow_true_s
 {
 	int flag;
 };
-typedef struct JsonTrueS JsonTrue;
+typedef struct slow_true_s slow_true_t;
 
-struct JsonNumberS
+struct slow_number_s
 {
 	double d;
 };
-typedef struct JsonNumberS JsonNumber;
+typedef struct slow_number_s slow_number_t;
 
-struct JsonStringS
+struct slow_string_s
 {
 	int len;
 	char* p;
 };
-typedef struct JsonStringS JsonString;
+typedef struct slow_string_s slow_string_t;
 
-struct JsonKeyValueS
+struct slow_kv_s
 {
-	JsonString key;
-	JsonBase value;
+	slow_string_t key;
+	slow_base_t value;
 };
-typedef struct JsonKeyValueS JsonKeyValue;
+typedef struct slow_kv_s slow_kv_t;
 
-struct JsonObjectS
+struct slow_object_s
 {
-	struct JsonKVListS* next;
+	struct slow_kv_list_s* next;
 };
-typedef struct JsonObjectS JsonObject;
+typedef struct slow_object_s slow_object_t;
 
-struct JsonKVListS
+struct slow_kv_list_s
 {
-	JsonKeyValue node;
-	struct JsonKVListS* next;
+	slow_kv_t node;
+	struct slow_kv_list_s* next;
 };
-typedef struct JsonKVListS JsonKVList;
+typedef struct slow_kv_list_s slow_kv_list_t;
 
-struct JsonBaseListS
+struct slow_base_list_s
 {
-	JsonBase node;
-	struct JsonBaseListS* next;
+	slow_base_t node;
+	struct slow_base_list_s* next;
 };
-typedef struct JsonBaseListS JsonBaseList;
+typedef struct slow_base_list_s slow_base_list_t;
 
-struct JsonArrayS
+struct slow_array_s
 {
-	JsonBaseList* next;
+	slow_base_list_t* next;
 };
-typedef struct JsonArrayS JsonArray;
+typedef struct slow_array_s slow_array_t;
 
-struct JsonRetStringS
+struct slow_ret_string_s
 {
 	char* p;
 	int size;
 	int offset;
 };
-typedef struct JsonRetStringS JsonRetString;
+typedef struct slow_ret_string_s slow_ret_string_t;
 
-int initJsonNull(JsonNull* ptrNull);
-int initJsonFalse(JsonFalse* ptrFalse);
-int initJsonTrue(JsonTrue* ptrTrue);
-int initJsonNumber(JsonNumber* ptrNumber, double d);
-int initJsonString(JsonString* ptrString, const char* s);
-int initJsonObject(JsonObject* ptrObject);
-int initJsonArray(JsonArray* ptrArray);
-int initJsonRetString(JsonRetString* ptr);
-int checkJsonRetStringSize(JsonRetString* ptr, int size);
+int slow_init_null(slow_null_t* ptrNull);
+int slow_init_false(slow_false_t* ptrFalse);
+int slow_init_true(slow_true_t* ptrTrue);
+int slow_init_number(slow_number_t* ptrNumber, double d);
+int slow_init_string(slow_string_t* ptrString, const char* s);
+int slow_init_object(slow_object_t* ptrObject);
+int slow_init_array(slow_array_t* ptrArray);
+int slow_init_ret_string(slow_ret_string_t* ptr);
+int slow_check_ret_string_size(slow_ret_string_t* ptr, int size);
 
-int ObjectGetBase(JsonObject* ptrObject, const char* k, JsonBase** b);
-int ObjectGetNull(JsonObject* ptrObject, const char* k, int* n);
-int ObjectGetBool(JsonObject* ptrObject, const char* k, int* b);
-int ObjectGetNumber(JsonObject* ptrObject, const char* k, double* d);
-int ObjectGetString(JsonObject* ptrObject, const char* k, JsonString** s);
-int ObjectGetObject(JsonObject* ptrObject, const char* k, JsonObject** o);
-int ObjectGetArray(JsonObject* ptrObject, const char* k, JsonArray** a);
+int slow_object_get_base(slow_object_t* ptrObject, const char* k, slow_base_t** b);
+int slow_object_get_null(slow_object_t* ptrObject, const char* k, int* n);
+int slow_object_get_bool(slow_object_t* ptrObject, const char* k, int* b);
+int slow_object_get_number(slow_object_t* ptrObject, const char* k, double* d);
+int slow_object_get_string(slow_object_t* ptrObject, const char* k, slow_string_t** s);
+int slow_object_get_object(slow_object_t* ptrObject, const char* k, slow_object_t** o);
+int slow_object_get_array(slow_object_t* ptrObject, const char* k, slow_array_t** a);
 
-int ArraySize(JsonArray* ptrArray);
-int ArrayGetByIndex(JsonArray* ptrArray, int index, JsonBase** b);
+int slow_array_get_size(slow_array_t* ptrArray);
+int slow_array_get_by_index(slow_array_t* ptrArray, int index, slow_base_t** b);
 
-int releaseJsonString(JsonString* ptrString);
-int releaseJsonBase(JsonBase* ptrBase);
-int releaseJsonKeyValue(JsonKeyValue* ptrKeyValue);
-int releaseJsonObject(JsonObject* ptrObject);
-int releaseJsonArray(JsonArray* ptrArray);
-int releaseJsonRetString(JsonRetString* ptrRetString);
+int slow_release_string(slow_string_t* ptrString);
+int slow_release_base(slow_base_t* ptrBase);
+int slow_release_key_value(slow_kv_t* ptrKeyValue);
+int slow_release_object(slow_object_t* ptrObject);
+int slow_release_array(slow_array_t* ptrArray);
+int slow_release_ret_string(slow_ret_string_t* ptrRetString);
 
 
 #endif 

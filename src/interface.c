@@ -3,89 +3,81 @@
 #include <string.h>
 #include "interface.h"
 
-int toJsonObject(char* s, JsonObject *jo)
+int slow_raw2object(char* s, slow_object_t *jo)
 {
 	if (s == NULL || jo == NULL) return -1;
 
 	char* temp = NULL;
-	if (removeUseless(s, &temp) != 0) return -1;
+	if (slow_remove_useless(s, &temp) != 0) return -1;
 	char* freeTemp = temp;
-	if (parseObject(&temp, jo) != 0) return -1;
+	if (slow_parse_object(&temp, jo) != 0) return -1;
 	
 	free(freeTemp);
 
 	return 0;
 }
 
-int toJsonArray(char* s, JsonArray* ja)
+int slow_raw2array(char* s, slow_array_t* ja)
 {
 	if (s == NULL || ja == NULL) return -1;
 
-	if (parseArray(&s, ja) != 0) return -1;
+	if (slow_parse_array(&s, ja) != 0) return -1;
 	
 	return 0;
 }
 
-int OtoString(char** s, JsonObject* jo)
+int slow_object2raw(char** s, slow_object_t* jo)
 {
 	if (jo == NULL) return -1;
 
-	JsonRetString jrs;
-	initJsonRetString(&jrs);
-	if (objectToString(jo, &jrs) != 0)
+	slow_ret_string_t jrs;
+	slow_init_ret_string(&jrs);
+	if (slow_object2string(jo, &jrs) != 0)
 	{
-		releaseJsonRetString(&jrs);
+		slow_release_ret_string(&jrs);
 		return -1;
 	}
-	if (endToString(&jrs) != 0)
+	if (slow_end2string(&jrs) != 0)
 	{
-		releaseJsonRetString(&jrs);
+		slow_release_ret_string(&jrs);
 		return -1;
 	}
 	char* temp = (char*)malloc(jrs.offset);
 	if (temp == NULL)
 	{
-		releaseJsonRetString(&jrs);
+		slow_release_ret_string(&jrs);
 		return -1;
 	}
 	memcpy(temp, jrs.p, jrs.offset);
 	*s = temp;
-	releaseJsonRetString(&jrs);
+	slow_release_ret_string(&jrs);
 	return 0;
 }
 
-int AtoString(char** s, JsonArray* ja)
+int slow_array2raw(char** s, slow_array_t* ja)
 {
 	if (ja == NULL) return -1;
 
-	JsonRetString jrs;
-	initJsonRetString(&jrs);
-	if (arrayToString(ja, &jrs) != 0)
+	slow_ret_string_t jrs;
+	slow_init_ret_string(&jrs);
+	if (slow_array2string(ja, &jrs) != 0)
 	{
-		releaseJsonRetString(&jrs);
+		slow_release_ret_string(&jrs);
 		return -1;
 	}
-	if (endToString(&jrs) != 0)
+	if (slow_end2string(&jrs) != 0)
 	{
-		releaseJsonRetString(&jrs);
+		slow_release_ret_string(&jrs);
 		return -1;
 	}
 	char* temp = (char*)malloc(jrs.offset);
 	if (temp == NULL)
 	{
-		releaseJsonRetString(&jrs);
+		slow_release_ret_string(&jrs);
 		return -1;
 	}
 	memcpy(temp, jrs.p, jrs.offset);
 	*s = temp;
-	releaseJsonRetString(&jrs);
+	slow_release_ret_string(&jrs);
 	return 0;
-}
-
-
-int printJsonBase(JsonBase* jb)
-{
-	if (jb == NULL) return -1;
-
-
 }

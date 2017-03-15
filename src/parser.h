@@ -4,36 +4,36 @@
 #include "json.h"
 
 // ½âÎö
-int removeUseless(const char* src, char** dst);
+int slow_remove_useless(const char* src, char** dst);
 
-int parseNull(char** src, JsonNull* objNull);
-int validNull(char* src);
+int slow_parse_null(char** src, slow_null_t* objNull);
+int slow_valid_null(char* src);
 
-int parseTrue(char** src, JsonTrue* objTrue);
-int validTrue(char* src);
+int slow_parse_true(char** src, slow_true_t* objTrue);
+int slow_valid_true(char* src);
 
-int parseFalse(char** src, JsonFalse* objFalse);
-int validFalse(char* src);
+int slow_parse_false(char** src, slow_false_t* objFalse);
+int slow_valid_false(char* src);
 
-int parseNumber(char** src, JsonNumber* objNumber);
-int validNumber(char* src, int* count, int* hasDot);
+int slow_parse_number(char** src, slow_number_t* objNumber);
+int slow_valid_number(char* src, int* count, int* hasDot);
 
-int parseString(char** src, JsonString* objString, int isKey);
-int validString(char* src, int* count, int isKey);
+int slow_parse_string(char** src, slow_string_t* objString, int isKey);
+int slow_valid_string(char* src, int* count, int isKey);
 
-int parseKeyValue(char** src, JsonKeyValue* objKeyValue);
+int slow_parse_key_value(char** src, slow_kv_t* objKeyValue);
 
-int parseObject(char** src, JsonObject* objObject);
+int slow_parse_object(char** src, slow_object_t* objObject);
 
-int parseBase(char** src, JsonBase* objBase);
+int slow_parse_base(char** src, slow_base_t* objBase);
 
-int parseArray(char** src, JsonArray* ptrArray);
+int slow_parse_array(char** src, slow_array_t* ptrArray);
 
 
 // ¸¨Öúº¯Êý
-int checkJsonType(char* src);
+int slow_check_type(char* src);
 
-int cmpJsonString(JsonString* s, const char* str);
-int cmpJsonNumber(JsonNumber* n, double d);
+int slow_cmp_string(slow_string_t* s, const char* str);
+int slow_cmp_number(slow_number_t* n, double d);
 #endif 
 

@@ -5,12 +5,10 @@
 #include "parser.h"
 #include "stringpify.h"
 
-int toJsonObject(char* s, JsonObject* jo);
-int toJsonArray(char* s, JsonArray* ja);
+int slow_raw2object(char* s, slow_object_t* jo);
+int slow_raw2array(char* s, slow_array_t* ja);
 
-int OtoString(char** s, JsonObject* jo);
-int AtoString(char** s, JsonArray* ja);
-
-int printJsonBase(JsonBase* jb);
+int slow_object2raw(char** s, slow_object_t* jo);
+int slow_array2raw(char** s, slow_array_t* ja);
 
 #endif

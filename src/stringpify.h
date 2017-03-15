@@ -4,17 +4,17 @@
 #include "json.h"
 
 // tostring
-int nullToString(JsonNull* ptrNull, JsonRetString* jrs);
-int falseToString(JsonFalse* ptrFalse, JsonRetString* jrs);
-int trueToString(JsonTrue* ptrTrue, JsonRetString* jrs);
-int numberToString(JsonNumber* ptrNumber, JsonRetString* jrs);
-int stringToString(JsonString* ptrString, JsonRetString* jrs);
-int keyValueToString(JsonKeyValue* ptrKeyValue, JsonRetString* jrs);
-int baseToString(JsonBase* ptrBase, JsonRetString* jrs);
-int addToString(const char* s, JsonRetString* jrs);
-int objectToString(JsonObject* ptrObject, JsonRetString* jrs);
-int arrayToString(JsonArray* ptrArray, JsonRetString* jrs);
-int endToString(JsonRetString* jrs);
+int slow_null2string(slow_null_t* ptrNull, slow_ret_string_t* jrs);
+int slow_false2string(slow_false_t* ptrFalse, slow_ret_string_t* jrs);
+int slow_true2string(slow_true_t* ptrTrue, slow_ret_string_t* jrs);
+int slow_number2string(slow_number_t* ptrNumber, slow_ret_string_t* jrs);
+int slow_string2string(slow_string_t* ptrString, slow_ret_string_t* jrs);
+int slow_kv2string(slow_kv_t* ptrKeyValue, slow_ret_string_t* jrs);
+int slow_base2string(slow_base_t* ptrBase, slow_ret_string_t* jrs);
+int slow_add2string(const char* s, slow_ret_string_t* jrs);
+int slow_object2string(slow_object_t* ptrObject, slow_ret_string_t* jrs);
+int slow_array2string(slow_array_t* ptrArray, slow_ret_string_t* jrs);
+int slow_end2string(slow_ret_string_t* jrs);
 
 #endif // !_STRINGPIFY_H_
 

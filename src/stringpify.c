@@ -1,44 +1,47 @@
 // tostring
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "json.h"
 #include "common.h"
+#include "stringpify.h"
 
 
-int nullToString(JsonNull* ptrNull, JsonRetString* jrs)
+int slow_null2string(slow_null_t* ptrNull, slow_ret_string_t* jrs)
 {
 	if (ptrNull == NULL || jrs == NULL) return -1;
 
-	if (checkJsonRetStringSize(jrs, 4) != 0) return -1;
+	if (slow_check_ret_string_size(jrs, 4) != 0) return -1;
 
 	memcpy(jrs->p + jrs->offset, "null", 4);
 	jrs->offset += 4;
 	return 0;
 }
 
-int falseToString(JsonFalse* ptrFalse, JsonRetString* jrs)
+int slow_false2string(slow_false_t* ptrFalse, slow_ret_string_t* jrs)
 {
 	if (ptrFalse == NULL || jrs == NULL) return -1;
 
-	if (checkJsonRetStringSize(jrs, 5) != 0) return -1;
+	if (slow_check_ret_string_size(jrs, 5) != 0) return -1;
 
 	memcpy(jrs->p + jrs->offset, "false", 5);
 	jrs->offset += 5;
 	return 0;
 }
 
-int trueToString(JsonTrue* ptrTrue, JsonRetString* jrs)
+int slow_true2string(slow_true_t* ptrTrue, slow_ret_string_t* jrs)
 {
 	if (ptrTrue == NULL || jrs == NULL) return -1;
 
-	if (checkJsonRetStringSize(jrs, 4) != 0) return -1;
+	if (slow_check_ret_string_size(jrs, 4) != 0) return -1;
 
 	memcpy(jrs->p + jrs->offset, "true", 4);
 	jrs->offset += 4;
 	return 0;
 }
 
-int numberToString(JsonNumber* ptrNumber, JsonRetString* jrs)
+int slow_number2string(slow_number_t* ptrNumber, slow_ret_string_t* jrs)
 {
 	if (ptrNumber == NULL || jrs == NULL) return -1;
 
@@ -77,149 +80,149 @@ int numberToString(JsonNumber* ptrNumber, JsonRetString* jrs)
 
 	//len = temp + 1;
 
-	if (checkJsonRetStringSize(jrs, temp) != 0) return -1;
+	if (slow_check_ret_string_size(jrs, temp) != 0) return -1;
 
 	memcpy(jrs->p + jrs->offset, buffer, temp);
 	jrs->offset += temp;
 	return 0;
 }
 
-int stringToString(JsonString* ptrString, JsonRetString* jrs)
+int slow_string2string(slow_string_t* ptrString, slow_ret_string_t* jrs)
 {
 	if (ptrString == NULL || jrs == NULL) return -1;
 
 	if (ptrString->p == NULL || ptrString->len <= 0) return -1;
 
-	if (checkJsonRetStringSize(jrs, ptrString->len) != 0) return -1;
-	if (addToString("\"", jrs) != 0)  return -1;
+	if (slow_check_ret_string_size(jrs, ptrString->len) != 0) return -1;
+	if (slow_add2string("\"", jrs) != 0)  return -1;
 	memcpy(jrs->p + jrs->offset, ptrString->p, ptrString->len);
 	jrs->offset += ptrString->len;
-	if (addToString("\"", jrs) != 0)  return -1;
+	if (slow_add2string("\"", jrs) != 0)  return -1;
 	return 0;
 }
 
-int keyValueToString(JsonKeyValue* ptrKeyValue, JsonRetString* jrs)
+int slow_kv2string(slow_kv_t* ptrKeyValue, slow_ret_string_t* jrs)
 {
 	if (ptrKeyValue == NULL || jrs == NULL) return -1;
 
-	if (stringToString(&ptrKeyValue->key, jrs) != 0) return -1;
+	if (slow_string2string(&ptrKeyValue->key, jrs) != 0) return -1;
 
-	if (addToString(":", jrs) != 0) return -1;
+	if (slow_add2string(":", jrs) != 0) return -1;
 
-	if (baseToString(&ptrKeyValue->value, jrs) != 0) return -1;
+	if (slow_base2string(&ptrKeyValue->value, jrs) != 0) return -1;
 
 	return 0;
 }
 
-int baseToString(JsonBase* ptrBase, JsonRetString* jrs)
+int slow_base2string(slow_base_t* ptrBase, slow_ret_string_t* jrs)
 {
 	if (ptrBase == NULL || jrs == NULL) return -1;
 
 	int jsonType = ptrBase->type;
-	if (jsonType == JT_NULL)
+	if (jsonType == ST_NULL)
 	{
-		JsonNull* jn = (JsonNull*)ptrBase->p;
-		if (nullToString(jn, jrs) != 0) return -1;
+		slow_null_t* jn = (slow_null_t*)ptrBase->p;
+		if (slow_null2string(jn, jrs) != 0) return -1;
 		return 0;
 	}
-	else if (jsonType == JT_FALSE)
+	else if (jsonType == ST_FALSE)
 	{
-		JsonFalse* jf = (JsonFalse*)ptrBase->p;
-		if (falseToString(jf, jrs) != 0) return -1;
+		slow_false_t* jf = (slow_false_t*)ptrBase->p;
+		if (slow_false2string(jf, jrs) != 0) return -1;
 		return 0;
 	}
-	else if (jsonType == JT_TRUE)
+	else if (jsonType == ST_TRUE)
 	{
-		JsonTrue* jt = (JsonTrue*)ptrBase->p;
-		if (trueToString(jt, jrs) != 0) return -1;
+		slow_true_t* jt = (slow_true_t*)ptrBase->p;
+		if (slow_true2string(jt, jrs) != 0) return -1;
 		return 0;
 	}
-	else if (jsonType == JT_NUMBER)
+	else if (jsonType == ST_NUMBER)
 	{
-		JsonNumber* jn = (JsonNumber*)ptrBase->p;
-		if (numberToString(jn, jrs) != 0) return -1;
+		slow_number_t* jn = (slow_number_t*)ptrBase->p;
+		if (slow_number2string(jn, jrs) != 0) return -1;
 		return 0;
 	}
-	else if (jsonType == JT_STRING)
+	else if (jsonType == ST_STRING)
 	{
-		JsonString* js = (JsonString*)ptrBase->p;
-		if (stringToString(js, jrs) != 0) return -1;
+		slow_string_t* js = (slow_string_t*)ptrBase->p;
+		if (slow_string2string(js, jrs) != 0) return -1;
 		return 0;
 	}
-	else if (jsonType == JT_OBJECT)
+	else if (jsonType == ST_OBJECT)
 	{
-		JsonObject* jo = (JsonObject*)ptrBase->p;
-		if (objectToString(jo, jrs) != 0) return -1;
+		slow_object_t* jo = (slow_object_t*)ptrBase->p;
+		if (slow_object2string(jo, jrs) != 0) return -1;
 		return 0;
 	}
-	else if (jsonType == JT_ARRAY)
+	else if (jsonType == ST_ARRAY)
 	{
-		JsonArray* ja = (JsonArray*)ptrBase->p;
-		if (arrayToString(ja, jrs) != 0) return -1;
+		slow_array_t* ja = (slow_array_t*)ptrBase->p;
+		if (slow_array2string(ja, jrs) != 0) return -1;
 		return 0;
 	}
 
 	return -1;
 }
 
-int addToString(const char* s, JsonRetString* jrs)
+int slow_add2string(const char* s, slow_ret_string_t* jrs)
 {
 	if (jrs == NULL || s == NULL) return -1;
 
 	int len = strlen(s);
-	if (checkJsonRetStringSize(jrs, len) != 0) return -1;
+	if (slow_check_ret_string_size(jrs, len) != 0) return -1;
 
 	memcpy(jrs->p + jrs->offset, s, len);
 	jrs->offset += len;
 	return 0;
 }
 
-int objectToString(JsonObject* ptrObject, JsonRetString* jrs)
+int slow_object2string(slow_object_t* ptrObject, slow_ret_string_t* jrs)
 {
 	if (ptrObject == NULL || jrs == NULL) return -1;
 
-	if (addToString("{", jrs) != 0) return -1;
+	if (slow_add2string("{", jrs) != 0) return -1;
 
-	JsonKVList* temp = ptrObject->next;
+	slow_kv_list_t* temp = ptrObject->next;
 	while (temp)
 	{
-		if (keyValueToString(&temp->node, jrs) != 0) return -1;
+		if (slow_kv2string(&temp->node, jrs) != 0) return -1;
 		temp = temp->next;
 		if (temp)
 		{
-			if (addToString(",", jrs) != 0) return -1;
+			if (slow_add2string(",", jrs) != 0) return -1;
 		}
 	}
 
-	if (addToString("}", jrs) != 0) return -1;
+	if (slow_add2string("}", jrs) != 0) return -1;
 	return 0;
 }
 
-int arrayToString(JsonArray* ptrArray, JsonRetString* jrs)
+int slow_array2string(slow_array_t* ptrArray, slow_ret_string_t* jrs)
 {
 	if (ptrArray == NULL || jrs == NULL) return -1;
 
-	if (addToString("[", jrs) != 0) return -1;
+	if (slow_add2string("[", jrs) != 0) return -1;
 
-	JsonBaseList* temp = ptrArray->next;
+	slow_base_list_t* temp = ptrArray->next;
 	while (temp)
 	{
-		if (baseToString(&temp->node, jrs) != 0) return -1;
+		if (slow_base2string(&temp->node, jrs) != 0) return -1;
 		temp = temp->next;
 		if (temp)
 		{
-			if (addToString(",", jrs) != 0) return -1;
+			if (slow_add2string(",", jrs) != 0) return -1;
 		}
 	}
 
-	if (addToString("]", jrs) != 0) return -1;
+	if (slow_add2string("]", jrs) != 0) return -1;
 	return 0;
 }
 
-int endToString(JsonRetString* jrs)
+int slow_end2string(slow_ret_string_t* jrs)
 {
 	if (jrs == NULL) return -1;
-	if (checkJsonRetStringSize(jrs, 1) != 0) return -1;
+	if (slow_check_ret_string_size(jrs, 1) != 0) return -1;
 
 	jrs->p[jrs->offset] = '\0';
 	jrs->offset += 1;
