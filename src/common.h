@@ -5,7 +5,6 @@
 const static double ACCURACY = 0.0000000000000001;
 const static int STRING_INIT_SIZE = 256;
 const static int NUMBER_BIT_SIZE = 22;
-const static double MAX_NUMBER = 10000000000;
 
 enum
 {

@@ -147,42 +147,23 @@ void test_parse_number()
 	test_number("1.0000000000000002", 1.0000000000000002);
 }
 
-void test_parse_string()
+void test_string(const char* src, const char* cmp)
 {
 	total++;
-	char* s1 = NULL;
-	if (test_malloc_string(&s1, "\"key\"") != 0) return;
-	char* tmp1 = s1;
-	total++;
-	char* s2 = NULL;
-	if (test_malloc_string(&s2, "\"luoluo") != 0) return;
-	char* tmp2 = s2;
-	total++;
-	char* s3 = NULL;
-	if (test_malloc_string(&s3, "luoluolu\"") != 0) return;
-	char* tmp3 = s3;
-	total++;
-	char* s4 = NULL;
-	if (test_malloc_string(&s4, "\"\"") != 0) return;
-	char* tmp4 = s4;
-	total++;
-	char* s5 = NULL;
-	if (test_malloc_string(&s5, "\"\"") != 0) return;
-	char* tmp5 = s5;
+	char* s = NULL;
+	if (test_malloc_string(&s, src) != 0) return;
+	char* tmp = s;
+	slow_string_t ss;
+	if (slow_parse_string(&tmp, &ss, 1) == 0 && slow_cmp_string(&ss, cmp) == 0) pass++;
+	slow_release_string(&ss);
+	free(s);
+}
 
-	slow_string_t js; 
-	if (slow_parse_string(&s1, &js, 1) == 0 && slow_cmp_string(&js, "key") == 0) pass++;
-	if (slow_parse_string(&s2, &js, 1) != 0) pass++;
-	if (slow_parse_string(&s3, &js, 1) != 0) pass++;
-	if (slow_parse_string(&s4, &js, 1) != 0) pass++;
-	if (slow_parse_string(&s5, &js, 0) == 0 && js.len == 0) pass++;
-
-	free(tmp1);
-	free(tmp2);
-	free(tmp3);
-	free(tmp4);
-	free(tmp5);
-	slow_release_string(&js);
+void test_parse_string()
+{
+	test_string("\"key\"", "\"key\"");
+	test_string("\"\"", "\"\"");
+	test_string("as\twe\n\\", "as\twe\n\\");
 }
 
 void test_parse_object()

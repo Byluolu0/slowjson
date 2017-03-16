@@ -5,81 +5,70 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
-int slow_init_null(slow_null_t* ptrNull)
+void slow_init_null(slow_null_t* pn)
 {
-	if (ptrNull == NULL) return SLOW_NULL_PTR;
-	ptrNull->flag = 1;
-	return SLOW_OK;
+	assert(pn != NULL);
+	pn->flag = 1;
 }
 
-int slow_init_false(slow_false_t* ptrFalse)
+void slow_init_false(slow_false_t* pf)
 {
-	if (ptrFalse == NULL) return SLOW_NULL_PTR;
-	ptrFalse->flag = 1;
-	return SLOW_OK;
+	assert(pf != NULL);
+	pf->flag = 1;
 }
 
-int slow_init_true(slow_true_t* ptrTrue)
+void slow_init_true(slow_true_t* pt)
 {
-	if (ptrTrue == NULL) return SLOW_NULL_PTR;
-	ptrTrue->flag = 1;
-	return SLOW_OK;
+	assert(pt != NULL);
+	pt->flag = 1;
 }
 
-int slow_init_number(slow_number_t* ptrNumber, double d)
+void slow_init_number(slow_number_t* pn, double d)
 {
-	if (ptrNumber == NULL) return SLOW_NULL_PTR;
-	ptrNumber->d = d;
-	return SLOW_OK;
+	assert(pn != NULL);
+	pn->d = d;
 }
 
-int slow_init_string(slow_string_t* ps)
+void slow_init_string(slow_string_t* ps)
 {
-	if (ps == NULL) return SLOW_NULL_PTR;
+	assert(ps != NULL);
 	ps->p = (char*)malloc(STRING_INIT_SIZE);
-	if (ps->p == NULL) return SLOW_MOMERY_ERROR;
 	ps->size = STRING_INIT_SIZE;
 	ps->offset = 0;
-	return SLOW_OK;
 }
 
-int slow_init_object(slow_object_t* ptrObject)
+void slow_init_object(slow_object_t* po)
 {
-	if (ptrObject == NULL) return SLOW_NULL_PTR;
-	ptrObject->next = NULL;
-	return SLOW_OK;
+	assert(po != NULL);
+	po->next = NULL;
 }
 
-int slow_init_array(slow_array_t* ptrArray)
+void slow_init_array(slow_array_t* pa)
 {
-	if (ptrArray == NULL) return SLOW_NULL_PTR;
-	ptrArray->next = NULL;
-	return SLOW_OK;
+	assert(pa != NULL);
+	pa->next = NULL;
 }
 
-int slow_string_push(slow_string_t* ps, const char* s)
+void slow_string_push(slow_string_t* ps, const char* s)
 {
-	if (ps == NULL || s == NULL) return SLOW_NULL_PTR;
+	assert(ps != NULL);
+	assert(s != NULL);
 	int len = strlen(s);
-	int ret = slow_string_check_size(ps, len);
-	if (ret != SLOW_OK) return ret;
+	slow_string_check_size(ps, len);
 
 	memcpy(ps->p + ps->offset, s, len);
 	ps->offset += len;
-	return SLOW_OK;
 }
 
-int slow_string_check_size(slow_string_t* ps, int size)
+void slow_string_check_size(slow_string_t* ps, int size)
 {
-	if (ps == NULL) return SLOW_NULL_PTR;
-	if (size < 0) return SLOW_PARAM_ERROR;
-	if (ps->offset + size <= ps->size) return SLOW_OK;
+	assert(size > 0);
+	if (ps->offset + size <= ps->size) return;
 	ps->size += ps->size >> 1;
 	char* temp = (char*)realloc(ps->p, ps->size);
-	if (temp == NULL) return SLOW_MOMERY_ERROR;
 	ps->p = temp;
-	return SLOW_OK;
 }
 
 int slow_object_get_base(slow_object_t* ptrObject, const char* k, slow_base_t** b)

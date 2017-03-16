@@ -7,44 +7,37 @@
 #include "stringpify.h"
 
 
-int slow_null2string(slow_null_t* ptrNull, slow_ret_string_t* jrs)
+int slow_null2string(slow_null_t* pn, slow_string_t* ps)
 {
-	if (ptrNull == NULL || jrs == NULL) return SLOW_NULL_PTR;
+	assert(pn != NULL);
+	assert(ps != NULL);
+	slow_string_push(ps, "null");
 
-	if (slow_check_ret_string_size(jrs, 4) != 0) return -1;
-
-	memcpy(jrs->p + jrs->offset, "null", 4);
-	jrs->offset += 4;
-	return 0;
+	return SLOW_OK;
 }
 
-int slow_false2string(slow_false_t* ptrFalse, slow_ret_string_t* jrs)
+int slow_false2string(slow_false_t* pf, slow_string_t* ps)
 {
-	if (ptrFalse == NULL || jrs == NULL) return SLOW_NULL_PTR;
+	assert(pf != NULL);
+	assert(ps != NULL);
+	slow_string_push(ps, "false");
 
-	if (slow_check_ret_string_size(jrs, 5) != 0) return -1;
-
-	memcpy(jrs->p + jrs->offset, "false", 5);
-	jrs->offset += 5;
-	return 0;
+	return SLOW_OK;
 }
 
-int slow_true2string(slow_true_t* ptrTrue, slow_ret_string_t* jrs)
+int slow_true2string(slow_true_t* pt, slow_string_t* ps)
 {
-	if (ptrTrue == NULL || jrs == NULL) return SLOW_NULL_PTR;
-
-	if (slow_check_ret_string_size(jrs, 4) != 0) return -1;
-
-	memcpy(jrs->p + jrs->offset, "true", 4);
-	jrs->offset += 4;
-	return 0;
+	assert(pt != NULL);
+	assert(ps != NULL);
+	slow_string_push(ps, "true");
+	return SLOW_OK;
 }
 
-int slow_number2string(slow_number_t* ptrNumber, slow_ret_string_t* jrs)
+int slow_number2string(slow_number_t* pn, slow_string_t* ps)
 {
-	if (ptrNumber == NULL || jrs == NULL) return SLOW_NULL_PTR;
-
-	if (ptrNumber->d > MAX_NUMBER) return -1;
+	/*
+	assert(pn != NULL);
+	assert(ps != NULL);
 
 	char* buffer = (char*)malloc(NUMBER_BIT_SIZE);
 	if (buffer == NULL) return -1;
@@ -84,80 +77,78 @@ int slow_number2string(slow_number_t* ptrNumber, slow_ret_string_t* jrs)
 	memcpy(jrs->p + jrs->offset, buffer, temp);
 	jrs->offset += temp;
 	return 0;
+	*/
+	return SLOW_OK;
 }
 
-int slow_string2string(slow_string_t* ptrString, slow_ret_string_t* jrs)
+void slow_string2string(slow_string_t* psrcs, slow_string_t* ps)
 {
-	if (ptrString == NULL || jrs == NULL) return SLOW_NULL_PTR;
+	assert(psrcs != NULL);
+	assert(ps != NULL);
 
-	if (ptrString->p == NULL || ptrString->len <= 0) return -1;
+	slow_string_push(psrcs, "\0");
+	slow_string_push(ps, psrcs->p);
+}
 
-	if (slow_check_ret_string_size(jrs, ptrString->len) != 0) return -1;
-	if (slow_add2string("\"", jrs) != 0)  return -1;
-	memcpy(jrs->p + jrs->offset, ptrString->p, ptrString->len);
-	jrs->offset += ptrString->len;
-	if (slow_add2string("\"", jrs) != 0)  return -1;
+int slow_kv2string(slow_kv_t* pkv, slow_string_t* ps)
+{
+	assert(pkv != NULL);
+	assert(ps != NULL);
+
+	slow_string2string(&pkv->key, ps);
+	slow_string_push(ps, ":");
+
+	if (slow_base2string(&pkv->value, ps) != 0) return -1;
+
 	return 0;
 }
 
-int slow_kv2string(slow_kv_t* ptrKeyValue, slow_ret_string_t* jrs)
+int slow_base2string(slow_base_t* pb, slow_string_t* ps)
 {
-	if (ptrKeyValue == NULL || jrs == NULL) return SLOW_NULL_PTR;
+	assert(pb != NULL);
+	assert(ps != NULL);
 
-	if (slow_string2string(&ptrKeyValue->key, jrs) != 0) return -1;
-
-	if (slow_add2string(":", jrs) != 0) return -1;
-
-	if (slow_base2string(&ptrKeyValue->value, jrs) != 0) return -1;
-
-	return 0;
-}
-
-int slow_base2string(slow_base_t* ptrBase, slow_ret_string_t* jrs)
-{
-	if (ptrBase == NULL || jrs == NULL) return SLOW_NULL_PTR;
-
-	int jsonType = ptrBase->type;
+	int jsonType = pb->type;
 	if (jsonType == ST_NULL)
 	{
-		slow_null_t* jn = (slow_null_t*)ptrBase->p;
-		if (slow_null2string(jn, jrs) != 0) return -1;
-		return 0;
+		slow_null_t* jn = (slow_null_t*)pb->p;
+		slow_null2string(jn, ps);
+		return SLOW_OK;
 	}
 	else if (jsonType == ST_FALSE)
 	{
-		slow_false_t* jf = (slow_false_t*)ptrBase->p;
-		if (slow_false2string(jf, jrs) != 0) return -1;
-		return 0;
+		slow_false_t* jf = (slow_false_t*)pb->p;
+		slow_false2string(jf, ps);
+		return SLOW_OK;
 	}
 	else if (jsonType == ST_TRUE)
 	{
-		slow_true_t* jt = (slow_true_t*)ptrBase->p;
-		if (slow_true2string(jt, jrs) != 0) return -1;
-		return 0;
+		slow_true_t* jt = (slow_true_t*)pb->p;
+		slow_true2string(jt, ps);
+		return SLOW_OK;
 	}
 	else if (jsonType == ST_NUMBER)
 	{
-		slow_number_t* jn = (slow_number_t*)ptrBase->p;
-		if (slow_number2string(jn, jrs) != 0) return -1;
-		return 0;
+		slow_number_t* jn = (slow_number_t*)pb->p;
+		slow_number2string(jn, ps);
+		return SLOW_OK;
 	}
 	else if (jsonType == ST_STRING)
 	{
-		slow_string_t* js = (slow_string_t*)ptrBase->p;
-		if (slow_string2string(js, jrs) != 0) return -1;
-		return 0;
+		slow_string_t* psrcs = (slow_string_t*)pb->p;
+		slow_string2string(psrcs, ps);
+		return SLOW_OK;
 	}
 	else if (jsonType == ST_OBJECT)
 	{
-		slow_object_t* jo = (slow_object_t*)ptrBase->p;
-		if (slow_object2string(jo, jrs) != 0) return -1;
+		slow_object_t* jo = (slow_object_t*)ps->p;
+		if (slow_object2string(jo, ps) != 0) return -1;
 		return 0;
 	}
 	else if (jsonType == ST_ARRAY)
 	{
-		slow_array_t* ja = (slow_array_t*)ptrBase->p;
-		if (slow_array2string(ja, jrs) != 0) return -1;
+		slow_array_t* ja = (slow_array_t*)pb->p;
+		if (slow_array2string(ja, ps) != 0) return -1;
 		return 0;
 	}
 

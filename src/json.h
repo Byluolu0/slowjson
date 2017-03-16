@@ -91,16 +91,16 @@ struct slow_array_s
 };
 typedef struct slow_array_s slow_array_t;
 
-int slow_init_null(slow_null_t* ptrNull);
-int slow_init_false(slow_false_t* ptrFalse);
-int slow_init_true(slow_true_t* ptrTrue);
-int slow_init_number(slow_number_t* ptrNumber, double d);
-int slow_init_string(slow_string_t* ps);
-int slow_init_object(slow_object_t* ptrObject);
-int slow_init_array(slow_array_t* ptrArray);
-int slow_string_check_size(slow_string_t* ps, int size);
+void slow_init_null(slow_null_t* ptrNull);
+void slow_init_false(slow_false_t* ptrFalse);
+void slow_init_true(slow_true_t* ptrTrue);
+void slow_init_number(slow_number_t* ptrNumber, double d);
+void slow_init_string(slow_string_t* ps);
+void slow_init_object(slow_object_t* ptrObject);
+void slow_init_array(slow_array_t* ptrArray);
+void slow_string_check_size(slow_string_t* ps, int size);
 
-int slow_string_push(slow_string_t* ps, const char* s);
+void slow_string_push(slow_string_t* ps, const char* s);
 
 int slow_object_get_base(slow_object_t* ptrObject, const char* k, slow_base_t** b);
 int slow_object_get_null(slow_object_t* ptrObject, const char* k, int* n);
