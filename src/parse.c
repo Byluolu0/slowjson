@@ -160,21 +160,38 @@ int slow_parse_string(char** src, slow_string_t* ps)
 		else if (*temp == '\\')
 		{
 			temp++;
+			if (*temp == '\\') slow_string_push(ps, '\\');
+			else if (*temp == '\"') slow_string_push(ps, '\"');
+			else if (*temp == '/') slow_string_push(ps, '/');
+ 			else if (*temp == 'r') slow_string_push(ps, '\r');
+			else if (*temp == 'n') slow_string_push(ps, '\n');
+			else if (*temp == 't') slow_string_push(ps, '\t');
+			else if (*temp == 'b') slow_string_push(ps, '\b');
+			else if (*temp == 'f') slow_string_push(ps, '\f');
+			else if (*temp == 'u')
+			{
+				//todo
+			}
 		}
+		else if (*temp == '\0') return SLOW_INVALID_VALUE;
+		else slow_string_push(ps, *temp);
+		temp++;
 	}
 }
 
-int slow_parse_kv(char** src, slow_kv_t* objKeyValue)
+int slow_parse_kv(char** src, slow_kv_t* pkv)
 {
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
+	if (src == NULL || *src == NULL || pkv == NULL) return SLOW_NULL_PTR;
 
-	if (slow_check_type(*src) != ST_STRING) return -1;
-	if (slow_parse_string(src, &(objKeyValue->key), 1) != 0) return -1;
+	if (slow_check_type(*src) != ST_STRING) return SLOW_INVALID_VALUE;
+	int ret = slow_parse_string(src, &pkv->key);
+	if (ret != SLOW_OK) return ret;
 
-	if (slow_check_type(*src) != ST_COLON) return -1;
+	if (slow_check_type(*src) != ST_COLON) return SLOW_INVALID_VALUE;
 	*src += 1;
 
-	if (slow_parse_base(src, &(objKeyValue->value)) != 0) return -1;
+	ret = slow_parse_base(src, &pkv->value);
+	if (ret != SLOW_OK) return ret;
 
 	return SLOW_OK;
 }
@@ -328,11 +345,23 @@ int slow_parse_base(char** src, slow_base_t* objBase)
 	}
 	else if (jsonType == ST_STRING)
 	{
-		slow_string_t *js = (slow_string_t*)malloc(sizeof(slow_string_t));
-		if (js == NULL) return -1;
-		if (slow_parse_string(src, js, 0) != 0) return -1;
+		slow_string_t *ps = (slow_string_t*)malloc(sizeof(slow_string_t));
+		if (ps == NULL) return SLOW_MOMERY_ERROR;
+		int ret = slow_init_string(ps);
+		if (ret != SLOW_OK)
+		{
+			slow_release_string(ps);
+			return ret;
+		}
+		ret = slow_parse_string(src, ps);
+		if (ret != SLOW_OK)
+		{
+			slow_release_string(ps);
+			return ret;
+		}
+
 		objBase->type = ST_STRING;
-		objBase->p = (void*)js;
+		objBase->p = (void*)ps;
 	}
 	else if (jsonType == ST_OBJECT)
 	{
