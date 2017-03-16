@@ -15,8 +15,7 @@ int slow_valid_true(char* src);
 int slow_parse_false(char** src, slow_false_t* objFalse);
 int slow_valid_false(char* src);
 
-int slow_parse_number(char** src, slow_number_t* objNumber);
-int slow_valid_number(char* src, int* count, int* hasDot);
+int slow_parse_number(char** src, slow_number_t* psn);
 
 int slow_parse_string(char** src, slow_string_t* objString, int isKey);
 int slow_valid_string(char* src, int* count, int isKey);

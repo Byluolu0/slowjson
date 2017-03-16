@@ -125,41 +125,27 @@ void test_parse_false()
 	free(tmp4);
 }
 
-void test_parse_number()
+void test_number(const char* sn, double d)
 {
 	total++;
-	char* s1 = NULL;
-	if (test_malloc_string(&s1, "3.14") != 0) return;
-	char* tmp1 = s1;
-	total++;
-	char* s2 = NULL;
-	if (test_malloc_string(&s2, "0.123") != 0) return;
-	char* tmp2 = s2;
-	total++;
-	char* s3 = NULL;
-	if (test_malloc_string(&s3, ".12312312") != 0) return;
-	char* tmp3 = s3;
-	total++;
-	char* s4 = NULL;
-	if (test_malloc_string(&s4, "1.2.2") != 0) return;
-	char* tmp4 = s4;
-	total++;
-	char* s5 = NULL;
-	if (test_malloc_string(&s5, "1234.") != 0) return;
-	char* tmp5 = s5;
-
+	char* s = NULL;
+	if (test_malloc_string(&s, sn) != 0) return;
+	char* tmp = s;
 	slow_number_t jn;
-	if (slow_parse_number(&s1, &jn) == 0 && slow_cmp_number(&jn, 3.14) == 0) pass++;
-	if (slow_parse_number(&s2, &jn) == 0 && slow_cmp_number(&jn, 0.123) == 0) pass++;
-	if (slow_parse_number(&s3, &jn) != 0) pass++;
-	if (slow_parse_number(&s4, &jn) == 0) pass++;
-	if (slow_parse_number(&s5, &jn) != 0) pass++;
+	if (slow_parse_number(&tmp, &jn) == 0 && slow_cmp_number(&jn, d) == 0) pass++;
+	free(s);
+}
 
-	free(tmp1);
-	free(tmp2);
-	free(tmp3);
-	free(tmp4);
-	free(tmp5);
+void test_parse_number()
+{
+	test_number("0", 0);
+	test_number("100", 100);
+	test_number("1.234E+10", 1.234E+10);
+	test_number("1.234E-10", 1.234E-10);
+	test_number("-1.234E10", -1.234E10);
+	test_number("-1.234E-10", -1.234E-10);
+	test_number("1.0000000000000002", 1.0000000000000002);
+
 }
 
 void test_parse_string()

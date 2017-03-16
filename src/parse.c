@@ -101,65 +101,42 @@ int slow_valid_false(char* src)
 	return SLOW_OK;
 }
 
-int slow_parse_number(char** src, slow_number_t* objNumber)
+int slow_parse_number(char** src, slow_number_t* psn)
 {
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
-	int count = 0, hasDot = 0;
-	if (slow_valid_number(*src, &count, &hasDot) != 0) return -1;
+	if (*src == NULL) return SLOW_NULL_PTR;
 
-	if (hasDot == 0) hasDot = count;
-
-	hasDot--;
-
-	double result = 0;
-	int i;
-	for (i = 0; i < count; ++i)
+	char* temp = *src;
+	if (*temp == '-') temp++;
+	if (*temp == '0')
 	{
-		if ((*src)[i] == '.')
-		{
-			hasDot++;
-			continue;
-		}
-		int tempDigit = (*src)[i] - '0';
-		result += tempDigit * pow(10, hasDot - i);
-	}
-	objNumber->d = result;
-	*src += count;
-
-	return SLOW_OK;
-}
-
-int slow_valid_number(char* src, int* count, int* hasDot)
-{
-	if (src == NULL) return SLOW_NULL_PTR;
-
-	char* temp = src;
-	int tempHasDot = 0;
-	int tempCount = 0;
-	while (*temp)
-	{
-		if (isdigit(*temp))
-		{
-			tempCount++;
-		}
-		else if (*temp == '.' && tempHasDot == 0 && tempCount > 0)
-		{
-			tempHasDot = tempCount;
-			tempCount++;
-		}
-		else
-		{
-			break;
-		}
 		temp++;
 	}
-	if (tempCount == 0) return -1;
+	else
+	{	
+		if (!ISDIGIT1TO9(*temp)) return SLOW_INVALID_VALUE;
+		while (ISDIGIT(*temp)) temp++;
+	}
 
-	if (src[tempCount - 1] == '.') return -1;
+	if (*temp == '.')
+	{
+		temp++;
+		if (!ISDIGIT(*temp)) return SLOW_INVALID_VALUE;
+		while (ISDIGIT(*temp)) temp++;
+	}
 
-	*count = tempCount;
-	*hasDot = tempHasDot;
+	if (*temp == 'e' || *temp == 'E')
+	{
+		temp++;
+		if (*temp == '-' || *temp == '+') temp++;
+		if (!ISDIGIT(*temp)) return SLOW_INVALID_VALUE;
+		while (ISDIGIT(*temp)) temp++;
+	}
 
+	errno = 0;
+	double d = strtod(*src, NULL);
+	if (errno == ERANGE) return SLOW_INVALID_VALUE;
+	psn->d = d;
+	*src = temp;
 	return SLOW_OK;
 }
 
