@@ -1,4 +1,3 @@
-// tostring
 
 #include <stdio.h>
 #include <string.h>
@@ -10,7 +9,7 @@
 
 int slow_null2string(slow_null_t* ptrNull, slow_ret_string_t* jrs)
 {
-	if (ptrNull == NULL || jrs == NULL) return -1;
+	if (ptrNull == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (slow_check_ret_string_size(jrs, 4) != 0) return -1;
 
@@ -21,7 +20,7 @@ int slow_null2string(slow_null_t* ptrNull, slow_ret_string_t* jrs)
 
 int slow_false2string(slow_false_t* ptrFalse, slow_ret_string_t* jrs)
 {
-	if (ptrFalse == NULL || jrs == NULL) return -1;
+	if (ptrFalse == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (slow_check_ret_string_size(jrs, 5) != 0) return -1;
 
@@ -32,7 +31,7 @@ int slow_false2string(slow_false_t* ptrFalse, slow_ret_string_t* jrs)
 
 int slow_true2string(slow_true_t* ptrTrue, slow_ret_string_t* jrs)
 {
-	if (ptrTrue == NULL || jrs == NULL) return -1;
+	if (ptrTrue == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (slow_check_ret_string_size(jrs, 4) != 0) return -1;
 
@@ -43,7 +42,7 @@ int slow_true2string(slow_true_t* ptrTrue, slow_ret_string_t* jrs)
 
 int slow_number2string(slow_number_t* ptrNumber, slow_ret_string_t* jrs)
 {
-	if (ptrNumber == NULL || jrs == NULL) return -1;
+	if (ptrNumber == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (ptrNumber->d > MAX_NUMBER) return -1;
 
@@ -89,7 +88,7 @@ int slow_number2string(slow_number_t* ptrNumber, slow_ret_string_t* jrs)
 
 int slow_string2string(slow_string_t* ptrString, slow_ret_string_t* jrs)
 {
-	if (ptrString == NULL || jrs == NULL) return -1;
+	if (ptrString == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (ptrString->p == NULL || ptrString->len <= 0) return -1;
 
@@ -103,7 +102,7 @@ int slow_string2string(slow_string_t* ptrString, slow_ret_string_t* jrs)
 
 int slow_kv2string(slow_kv_t* ptrKeyValue, slow_ret_string_t* jrs)
 {
-	if (ptrKeyValue == NULL || jrs == NULL) return -1;
+	if (ptrKeyValue == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (slow_string2string(&ptrKeyValue->key, jrs) != 0) return -1;
 
@@ -116,7 +115,7 @@ int slow_kv2string(slow_kv_t* ptrKeyValue, slow_ret_string_t* jrs)
 
 int slow_base2string(slow_base_t* ptrBase, slow_ret_string_t* jrs)
 {
-	if (ptrBase == NULL || jrs == NULL) return -1;
+	if (ptrBase == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	int jsonType = ptrBase->type;
 	if (jsonType == ST_NULL)
@@ -167,7 +166,7 @@ int slow_base2string(slow_base_t* ptrBase, slow_ret_string_t* jrs)
 
 int slow_add2string(const char* s, slow_ret_string_t* jrs)
 {
-	if (jrs == NULL || s == NULL) return -1;
+	if (jrs == NULL || s == NULL) return SLOW_NULL_PTR;
 
 	int len = strlen(s);
 	if (slow_check_ret_string_size(jrs, len) != 0) return -1;
@@ -179,7 +178,7 @@ int slow_add2string(const char* s, slow_ret_string_t* jrs)
 
 int slow_object2string(slow_object_t* ptrObject, slow_ret_string_t* jrs)
 {
-	if (ptrObject == NULL || jrs == NULL) return -1;
+	if (ptrObject == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (slow_add2string("{", jrs) != 0) return -1;
 
@@ -200,7 +199,7 @@ int slow_object2string(slow_object_t* ptrObject, slow_ret_string_t* jrs)
 
 int slow_array2string(slow_array_t* ptrArray, slow_ret_string_t* jrs)
 {
-	if (ptrArray == NULL || jrs == NULL) return -1;
+	if (ptrArray == NULL || jrs == NULL) return SLOW_NULL_PTR;
 
 	if (slow_add2string("[", jrs) != 0) return -1;
 
@@ -221,7 +220,7 @@ int slow_array2string(slow_array_t* ptrArray, slow_ret_string_t* jrs)
 
 int slow_end2string(slow_ret_string_t* jrs)
 {
-	if (jrs == NULL) return -1;
+	if (jrs == NULL) return SLOW_NULL_PTR;
 	if (slow_check_ret_string_size(jrs, 1) != 0) return -1;
 
 	jrs->p[jrs->offset] = '\0';

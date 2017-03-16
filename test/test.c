@@ -1,15 +1,16 @@
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
-#include "../src/parser.h"
+#include "../src/parse.h"
 #include "../src/stringpify.h"
 
 static int total = 0;
 static int pass = 0;
 
-int mallocString(char** s, const char* str)
+int test_malloc_string(char** s, const char* str)
 {
 	if (s == NULL || str == NULL) return -1;
 	int len = strlen(str);
@@ -19,7 +20,7 @@ int mallocString(char** s, const char* str)
 	return 0;
 }
 
-void testRemoveUseless()
+void test_remove_useless()
 {
 	total++;
 	char src[] = "  abd \trtq\n\n\rr   ";
@@ -31,23 +32,23 @@ void testRemoveUseless()
 	free(temp);
 }
 
-void testParseNull()
+void test_parse_null()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "null") != 0) return;
+	if (test_malloc_string(&s1, "null") != 0) return;
 	char* tmp1 = s1;
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "nul") != 0) return;
+	if (test_malloc_string(&s2, "nul") != 0) return;
 	char* tmp2 = s2;
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, "nxll") != 0) return;
+	if (test_malloc_string(&s3, "nxll") != 0) return;
 	char* tmp3 = s3;
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "nullxxx") != 0) return;
+	if (test_malloc_string(&s4, "nullxxx") != 0) return;
 	char* tmp4 = s4;
 
 	slow_null_t jn;
@@ -62,23 +63,23 @@ void testParseNull()
 	free(tmp4);
 }
 
-void testParseTrue()
+void test_parse_true()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "true") != 0) return;
+	if (test_malloc_string(&s1, "true") != 0) return;
 	char* tmp1 = s1;
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "tru") != 0) return;
+	if (test_malloc_string(&s2, "tru") != 0) return;
 	char* tmp2 = s2;
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, "trxe") != 0) return;
+	if (test_malloc_string(&s3, "trxe") != 0) return;
 	char* tmp3 = s3;
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "truexx") != 0) return;
+	if (test_malloc_string(&s4, "truexx") != 0) return;
 	char* tmp4 = s4;
 
 	slow_true_t jt;
@@ -93,23 +94,23 @@ void testParseTrue()
 	free(tmp4);
 }
 
-void testParseFalse()
+void test_parse_false()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "false") != 0) return;
+	if (test_malloc_string(&s1, "false") != 0) return;
 	char* tmp1 = s1;
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "flase") != 0) return;
+	if (test_malloc_string(&s2, "flase") != 0) return;
 	char* tmp2 = s2;
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, "fals") != 0) return;
+	if (test_malloc_string(&s3, "fals") != 0) return;
 	char* tmp3 = s3;
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "falsee") != 0) return;
+	if (test_malloc_string(&s4, "falsee") != 0) return;
 	char* tmp4 = s4;
 
 	slow_false_t jf;
@@ -124,27 +125,27 @@ void testParseFalse()
 	free(tmp4);
 }
 
-void testParseNumber()
+void test_parse_number()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "3.14") != 0) return;
+	if (test_malloc_string(&s1, "3.14") != 0) return;
 	char* tmp1 = s1;
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "0.123") != 0) return;
+	if (test_malloc_string(&s2, "0.123") != 0) return;
 	char* tmp2 = s2;
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, ".12312312") != 0) return;
+	if (test_malloc_string(&s3, ".12312312") != 0) return;
 	char* tmp3 = s3;
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "1.2.2") != 0) return;
+	if (test_malloc_string(&s4, "1.2.2") != 0) return;
 	char* tmp4 = s4;
 	total++;
 	char* s5 = NULL;
-	if (mallocString(&s5, "1234.") != 0) return;
+	if (test_malloc_string(&s5, "1234.") != 0) return;
 	char* tmp5 = s5;
 
 	slow_number_t jn;
@@ -161,27 +162,27 @@ void testParseNumber()
 	free(tmp5);
 }
 
-void testParseString()
+void test_parse_string()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "\"key\"") != 0) return;
+	if (test_malloc_string(&s1, "\"key\"") != 0) return;
 	char* tmp1 = s1;
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "\"luoluo") != 0) return;
+	if (test_malloc_string(&s2, "\"luoluo") != 0) return;
 	char* tmp2 = s2;
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, "luoluolu\"") != 0) return;
+	if (test_malloc_string(&s3, "luoluolu\"") != 0) return;
 	char* tmp3 = s3;
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "\"\"") != 0) return;
+	if (test_malloc_string(&s4, "\"\"") != 0) return;
 	char* tmp4 = s4;
 	total++;
 	char* s5 = NULL;
-	if (mallocString(&s5, "\"\"") != 0) return;
+	if (test_malloc_string(&s5, "\"\"") != 0) return;
 	char* tmp5 = s5;
 
 	slow_string_t js; 
@@ -199,11 +200,11 @@ void testParseString()
 	slow_release_string(&js);
 }
 
-void testParseObject()
+void test_parse_object()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "{\"key\":null}") != 0) return;
+	if (test_malloc_string(&s1, "{\"key\":null}") != 0) return;
 	char* tmp1 = s1;
 	slow_object_t jo1;
 	slow_init_object(&jo1);
@@ -217,7 +218,7 @@ void testParseObject()
 
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "{\"key\":\"value\"}") != 0) return;
+	if (test_malloc_string(&s2, "{\"key\":\"value\"}") != 0) return;
 	char* tmp2 = s2;
 	slow_object_t jo2;
 	slow_init_object(&jo2);
@@ -232,7 +233,7 @@ void testParseObject()
 
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, "{\"key\":1234.1234}") != 0) return;
+	if (test_malloc_string(&s3, "{\"key\":1234.1234}") != 0) return;
 	char* tmp3 = s3;
 	slow_object_t jo3;
 	slow_init_object(&jo3);
@@ -247,7 +248,7 @@ void testParseObject()
 
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "{\"key\":null,\"key1\":123.123}") != 0) return;
+	if (test_malloc_string(&s4, "{\"key\":null,\"key1\":123.123}") != 0) return;
 	char* tmp4 = s4;
 	slow_object_t jo4;
 	slow_init_object(&jo4);
@@ -266,7 +267,7 @@ void testParseObject()
 
 	total++;
 	char* s5 = NULL;
-	if (mallocString(&s5, "{\"key\":{\"key\":123.123}}") != 0) return;
+	if (test_malloc_string(&s5, "{\"key\":{\"key\":123.123}}") != 0) return;
 	char* tmp5 = s5;
 	slow_object_t jo5;
 	slow_init_object(&jo5);
@@ -289,11 +290,11 @@ void testParseObject()
 
 }
 
-void testParseBase()
+void test_parse_base()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "null") != 0) return;
+	if (test_malloc_string(&s1, "null") != 0) return;
 	char* tmp1 = s1;
 	slow_base_t jb1;
 	if (slow_parse_base(&s1, &jb1) == 0 && jb1.type == ST_NULL) pass++;
@@ -302,7 +303,7 @@ void testParseBase()
 
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "false") != 0) return;
+	if (test_malloc_string(&s2, "false") != 0) return;
 	char* tmp2 = s2;
 	slow_base_t jb2;
 	if (slow_parse_base(&s2, &jb2) == 0 && jb2.type == ST_FALSE) pass++;
@@ -311,7 +312,7 @@ void testParseBase()
 
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, "true") != 0) return;
+	if (test_malloc_string(&s3, "true") != 0) return;
 	char* tmp3 = s3;
 	slow_base_t jb3;
 	if (slow_parse_base(&s3, &jb3) == 0 && jb3.type == ST_TRUE) pass++;
@@ -320,7 +321,7 @@ void testParseBase()
 
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "1234") != 0) return;
+	if (test_malloc_string(&s4, "1234") != 0) return;
 	char* tmp4 = s4;
 	slow_base_t jb4;
 	if (slow_parse_base(&s4, &jb4) == 0 && jb4.type == ST_NUMBER && slow_cmp_number((slow_number_t*)jb4.p, 1234) == 0) pass++;
@@ -329,7 +330,7 @@ void testParseBase()
 
 	total++;
 	char* s5 = NULL;
-	if (mallocString(&s5, "1234.12") != 0) return;
+	if (test_malloc_string(&s5, "1234.12") != 0) return;
 	char* tmp5 = s5;
 	slow_base_t jb5;
 	if (slow_parse_base(&s5, &jb5) == 0 && jb5.type == ST_NUMBER 
@@ -339,7 +340,7 @@ void testParseBase()
 
 	total++;
 	char* s6 = NULL;
-	if (mallocString(&s6, "\"qwerqwe\"") != 0) return;
+	if (test_malloc_string(&s6, "\"qwerqwe\"") != 0) return;
 	char* tmp6 = s6;
 	slow_base_t jb6; 
 	if (slow_parse_base(&s6, &jb6) == 0 && jb6.type == ST_STRING && slow_cmp_string((slow_string_t*)jb6.p, "qwerqwe") == 0) pass++;
@@ -347,11 +348,11 @@ void testParseBase()
 	free(tmp6);
 }
 
-void testParseKeyValue()
+void test_parse_kv()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "\"key\":null") != 0) return;
+	if (test_malloc_string(&s1, "\"key\":null") != 0) return;
 	char* tmp1 = s1;
 	slow_kv_t jkv1; 
 	if (slow_parse_key_value(&s1, &jkv1) == 0 && slow_cmp_string(&jkv1.key, "key") == 0
@@ -361,7 +362,7 @@ void testParseKeyValue()
 
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "\"keyq:null") != 0) return;
+	if (test_malloc_string(&s2, "\"keyq:null") != 0) return;
 	char* tmp2 = s2;
 	slow_kv_t jkv2;
 	if (slow_parse_key_value(&s2, &jkv2) != 0) pass++;
@@ -370,7 +371,7 @@ void testParseKeyValue()
 
 	total++;
 	char* s3 = NULL;
-	if (mallocString(&s3, "\"key\":false") != 0) return;
+	if (test_malloc_string(&s3, "\"key\":false") != 0) return;
 	char* tmp3 = s3;
 	slow_kv_t jkv3;
 	if (slow_parse_key_value(&s3, &jkv3) == 0 && slow_cmp_string(&jkv3.key, "key") == 0
@@ -380,7 +381,7 @@ void testParseKeyValue()
 
 	total++;
 	char* s4 = NULL;
-	if (mallocString(&s4, "\"key\":true") != 0) return;
+	if (test_malloc_string(&s4, "\"key\":true") != 0) return;
 	char* tmp4 = s4;
 	slow_kv_t jkv4; 
 	if (slow_parse_key_value(&s4, &jkv4) == 0 && slow_cmp_string(&jkv4.key, "key") == 0
@@ -390,7 +391,7 @@ void testParseKeyValue()
 
 	total++;
 	char* s5 = NULL;
-	if (mallocString(&s5, "\"key\":1234.1234") != 0) return;
+	if (test_malloc_string(&s5, "\"key\":1234.1234") != 0) return;
 	char* tmp5 = s5;
 	slow_kv_t jkv5;
 	if (slow_parse_key_value(&s5, &jkv5) == 0 && slow_cmp_string(&jkv5.key, "key") == 0
@@ -400,7 +401,7 @@ void testParseKeyValue()
 
 	total++;
 	char* s6 = NULL;
-	if (mallocString(&s6, "\"key\":\"value\"") != 0) return;
+	if (test_malloc_string(&s6, "\"key\":\"value\"") != 0) return;
 	char* tmp6 = s6;
 	slow_kv_t jkv6;
 	if (slow_parse_key_value(&s6, &jkv6) == 0 && slow_cmp_string(&jkv6.key, "key") == 0
@@ -410,7 +411,7 @@ void testParseKeyValue()
 
 	total++;
 	char* s7 = NULL;
-	if (mallocString(&s7, "\"key\":{\"key\":\"value\"}") != 0) return;
+	if (test_malloc_string(&s7, "\"key\":{\"key\":\"value\"}") != 0) return;
 	char* tmp7 = s7;
 	slow_kv_t jkv7;
 	if (slow_parse_key_value(&s7, &jkv7) == 0 && slow_cmp_string(&jkv7.key, "key") == 0
@@ -424,11 +425,11 @@ void testParseKeyValue()
 	free(tmp7);
 }
 
-void testParseArray()
+void test_parse_array()
 {
 	total++;
 	char* s1 = NULL;
-	if (mallocString(&s1, "[]") != 0) return;
+	if (test_malloc_string(&s1, "[]") != 0) return;
 	char* tmp1 = s1;
 	slow_array_t ja1;
 	slow_init_array(&ja1);
@@ -438,7 +439,7 @@ void testParseArray()
 
 	total++;
 	char* s2 = NULL;
-	if (mallocString(&s2, "[1123.321]") != 0) return;
+	if (test_malloc_string(&s2, "[1123.321]") != 0) return;
 	char* tmp2 = s2;
 	slow_array_t ja2;
 	slow_init_array(&ja2);
@@ -452,7 +453,7 @@ void testParseArray()
 
 	total++;
 	char* s3;
-	if (mallocString(&s3, "[\"key\",true,{\"key\":123.123},[12,false]]") != 0) return;
+	if (test_malloc_string(&s3, "[\"key\",true,{\"key\":123.123},[12,false]]") != 0) return;
 	char* tmp3 = s3;
 	slow_array_t ja3;
 	slow_init_array(&ja3);
@@ -482,7 +483,7 @@ void testParseArray()
 	free(tmp3);
 }
 
-void testToString()
+void test_to_string()
 {
 	total++;
 	slow_null_t jn;
@@ -527,18 +528,18 @@ void testToString()
 
 int main()
 {
-	testRemoveUseless();
-	testParseNull();
-	testParseTrue();
-	testParseFalse();
-	testParseNumber();
-	testParseString();
-	testParseBase();
-	testParseObject();
-	testParseKeyValue();
-	testParseArray();
+	test_remove_useless();
+	test_parse_null();
+	test_parse_true();
+	test_parse_false();
+	test_parse_number();
+	test_parse_string();
+	test_parse_base();
+	test_parse_object();
+	test_parse_kv();
+	test_parse_array();
 
-	testToString();
+	test_to_string();
 
 	printf("total: %d pass: %d\n", total, pass);
 }

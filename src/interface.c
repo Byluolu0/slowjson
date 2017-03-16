@@ -1,11 +1,13 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "interface.h"
+#include "common.h"
 
 int slow_raw2object(char* s, slow_object_t *jo)
 {
-	if (s == NULL || jo == NULL) return -1;
+	if (s == NULL || jo == NULL) return SLOW_NULL_PTR;
 
 	char* temp = NULL;
 	if (slow_remove_useless(s, &temp) != 0) return -1;
@@ -14,21 +16,21 @@ int slow_raw2object(char* s, slow_object_t *jo)
 	
 	free(freeTemp);
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_raw2array(char* s, slow_array_t* ja)
 {
-	if (s == NULL || ja == NULL) return -1;
+	if (s == NULL || ja == NULL) return SLOW_NULL_PTR;
 
 	if (slow_parse_array(&s, ja) != 0) return -1;
 	
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_object2raw(char** s, slow_object_t* jo)
 {
-	if (jo == NULL) return -1;
+	if (jo == NULL) return SLOW_NULL_PTR;
 
 	slow_ret_string_t jrs;
 	slow_init_ret_string(&jrs);
@@ -51,12 +53,12 @@ int slow_object2raw(char** s, slow_object_t* jo)
 	memcpy(temp, jrs.p, jrs.offset);
 	*s = temp;
 	slow_release_ret_string(&jrs);
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_array2raw(char** s, slow_array_t* ja)
 {
-	if (ja == NULL) return -1;
+	if (ja == NULL) return SLOW_NULL_PTR;
 
 	slow_ret_string_t jrs;
 	slow_init_ret_string(&jrs);
@@ -79,5 +81,5 @@ int slow_array2raw(char** s, slow_array_t* ja)
 	memcpy(temp, jrs.p, jrs.offset);
 	*s = temp;
 	slow_release_ret_string(&jrs);
-	return 0;
+	return SLOW_OK;
 }

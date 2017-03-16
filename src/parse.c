@@ -1,3 +1,4 @@
+
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,15 +6,13 @@
 #include <math.h>
 
 #include "common.h"
-#include "parser.h"
+#include "parse.h"
 #include "json.h"
 
 // ÒÆ³ýÎÞÓÃ×Ö·û
 int slow_remove_useless(const char* src, char** dst)
 {
-	if (src == NULL) return -1;
-
-	if (*dst != NULL) return -1;
+	if (src == NULL) return SLOW_NULL_PTR;
 
 	int srcLen = strlen(src);
 	char* temp = (char*)malloc(srcLen + 1);
@@ -29,82 +28,82 @@ int slow_remove_useless(const char* src, char** dst)
 		src++;
 	}
 	*temp = '\0';
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_parse_null(char** src, slow_null_t* objNull)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	if (slow_valid_null(*src) != 0) return -1;
 	
 	objNull->flag = 1;
 	*src += 4;
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_valid_null(char* src)
 {
-	if (src == NULL) return -1;
+	if (src == NULL) return SLOW_NULL_PTR;
 
 	int srcLen = strlen(src);
 	if (srcLen < 4) return -1;
 	
 	if (src[0] != 'n' || src[1] != 'u' || src[2] != 'l' || src[3] != 'l') return -1;
 
-	return 0;
+	return SLOW_OK;
 }
 
 
 int slow_parse_true(char** src, slow_true_t* objTrue)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	if (slow_valid_true(*src) != 0) return -1;
 
 	objTrue->flag = 1;
 	*src += 4;
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_valid_true(char* src) 
 {
-	if (src == NULL) return -1;
+	if (src == NULL) return SLOW_NULL_PTR;
 
 	int srcLen = strlen(src);
 	if (srcLen < 4) return -1;
 
 	if (src[0] != 't' || src[1] != 'r' || src[2] != 'u' || src[3] != 'e') return -1;
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_parse_false(char** src, slow_false_t* objFalse)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	if (slow_valid_false(*src) != 0) return -1;
 
 	objFalse->flag = 1;
 	*src += 5;
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_valid_false(char* src)
 {
-	if (src == NULL) return -1;
+	if (src == NULL) return SLOW_NULL_PTR;
 
 	int srcLen = strlen(src);
 	if (srcLen < 5) return -1;
 
 	if (src[0] != 'f' || src[1] != 'a' || src[2] != 'l' || src[3] != 's' || src[4] != 'e') return -1;
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_parse_number(char** src, slow_number_t* objNumber)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 	int count = 0, hasDot = 0;
 	if (slow_valid_number(*src, &count, &hasDot) != 0) return -1;
 
@@ -127,12 +126,12 @@ int slow_parse_number(char** src, slow_number_t* objNumber)
 	objNumber->d = result;
 	*src += count;
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_valid_number(char* src, int* count, int* hasDot)
 {
-	if (src == NULL) return -1;
+	if (src == NULL) return SLOW_NULL_PTR;
 
 	char* temp = src;
 	int tempHasDot = 0;
@@ -161,12 +160,12 @@ int slow_valid_number(char* src, int* count, int* hasDot)
 	*count = tempCount;
 	*hasDot = tempHasDot;
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_parse_string(char** src, slow_string_t* objString, int isKey)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	int count = 0;
 	if (slow_valid_string(*src, &count, isKey) != 0) return -1;
@@ -177,12 +176,12 @@ int slow_parse_string(char** src, slow_string_t* objString, int isKey)
 	objString->len = count;
 	*src += (2 + count);
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_valid_string(char* src, int* count, int isKey)
 {
-	if (src == NULL) return -1;
+	if (src == NULL) return SLOW_NULL_PTR;
 
 	if (*src != '"') return -1;
 
@@ -197,7 +196,7 @@ int slow_valid_string(char* src, int* count, int isKey)
 		temp++;
 	}
 
-	if (!isKey && tempCount == 0 && src[1 + tempCount] == '"') return 0;
+	if (!isKey && tempCount == 0 && src[1 + tempCount] == '"') return SLOW_OK;
 
 	if (tempCount == 0) return -1;
 
@@ -205,12 +204,12 @@ int slow_valid_string(char* src, int* count, int isKey)
 
 	*count = tempCount;
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_parse_key_value(char** src, slow_kv_t* objKeyValue)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	if (slow_check_type(*src) != ST_STRING) return -1;
 	if (slow_parse_string(src, &(objKeyValue->key), 1) != 0) return -1;
@@ -220,12 +219,12 @@ int slow_parse_key_value(char** src, slow_kv_t* objKeyValue)
 
 	if (slow_parse_base(src, &(objKeyValue->value)) != 0) return -1;
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_parse_object(char** src, slow_object_t* ptrObject)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	if (slow_check_type(*src) != ST_OBJECT) return -1;
 	*src += 1;
@@ -233,7 +232,7 @@ int slow_parse_object(char** src, slow_object_t* ptrObject)
 	if (slow_check_type(*src) == ST_OBJECT_END)
 	{
 		*src += 1;
-		return 0;
+		return SLOW_OK;
 	}
 
 	while (1)
@@ -271,12 +270,12 @@ int slow_parse_object(char** src, slow_object_t* ptrObject)
 			return -1;
 		}
 	}
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_parse_array(char** src, slow_array_t* ptrArray)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	if (slow_check_type(*src) != ST_ARRAY) return -1;
 	*src += 1;
@@ -284,7 +283,7 @@ int slow_parse_array(char** src, slow_array_t* ptrArray)
 	if (slow_check_type(*src) == ST_ARRAY_END)
 	{
 		*src += 1;
-		return 0;
+		return SLOW_OK;
 	}
 
 	while (1)
@@ -312,12 +311,12 @@ int slow_parse_array(char** src, slow_array_t* ptrArray)
 			return -1;
 		}
 	}
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_check_type(char* src)
 {
-	if (src == NULL) return -1;
+	if (src == NULL) return SLOW_NULL_PTR;
 
 	if (*src == 'n') return ST_NULL;
 	else if (*src == 'f') return ST_FALSE;
@@ -335,7 +334,7 @@ int slow_check_type(char* src)
 
 int slow_parse_base(char** src, slow_base_t* objBase)
 {
-	if (src == NULL || *src == NULL) return -1;
+	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
 	int jsonType = slow_check_type(*src);
 	if (jsonType == ST_NULL)
@@ -400,27 +399,27 @@ int slow_parse_base(char** src, slow_base_t* objBase)
 	{
 		return -1;
 	}
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_cmp_string(slow_string_t* s, const char* str)
 {
-	if (s == NULL || str == NULL) return -1;
+	if (s == NULL || str == NULL) return SLOW_NULL_PTR;
 
 	int len = strlen(str);
 	if (s->len != len) return -1;
 
 	if (strcmp(s->p, str) != 0) return -1;
 
-	return 0;
+	return SLOW_OK;
 }
 
 int slow_cmp_number(slow_number_t* n, double d)
 {
-	if (n == NULL) return -1;
+	if (n == NULL) return SLOW_NULL_PTR;
 
 	if (fabs(n->d - d) > ACCURACY) return -1;
 
-	return 0;
+	return SLOW_OK;
 }
 
