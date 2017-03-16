@@ -145,7 +145,6 @@ void test_parse_number()
 	test_number("-1.234E10", -1.234E10);
 	test_number("-1.234E-10", -1.234E-10);
 	test_number("1.0000000000000002", 1.0000000000000002);
-
 }
 
 void test_parse_string()
@@ -341,9 +340,9 @@ void test_parse_kv()
 	if (test_malloc_string(&s1, "\"key\":null") != 0) return;
 	char* tmp1 = s1;
 	slow_kv_t jkv1; 
-	if (slow_parse_key_value(&s1, &jkv1) == 0 && slow_cmp_string(&jkv1.key, "key") == 0
+	if (slow_parse_kv(&s1, &jkv1) == 0 && slow_cmp_string(&jkv1.key, "key") == 0
 		&& jkv1.value.type == ST_NULL) pass++;
-	slow_release_key_value(&jkv1);
+	slow_release_kv(&jkv1);
 	free(tmp1);
 
 	total++;
@@ -351,8 +350,8 @@ void test_parse_kv()
 	if (test_malloc_string(&s2, "\"keyq:null") != 0) return;
 	char* tmp2 = s2;
 	slow_kv_t jkv2;
-	if (slow_parse_key_value(&s2, &jkv2) != 0) pass++;
-	slow_release_key_value(&jkv2);
+	if (slow_parse_kv(&s2, &jkv2) != 0) pass++;
+	slow_release_kv(&jkv2);
 	free(tmp2);
 
 	total++;
@@ -360,9 +359,9 @@ void test_parse_kv()
 	if (test_malloc_string(&s3, "\"key\":false") != 0) return;
 	char* tmp3 = s3;
 	slow_kv_t jkv3;
-	if (slow_parse_key_value(&s3, &jkv3) == 0 && slow_cmp_string(&jkv3.key, "key") == 0
+	if (slow_parse_kv(&s3, &jkv3) == 0 && slow_cmp_string(&jkv3.key, "key") == 0
 		&& jkv3.value.type == ST_FALSE) pass++;
-	slow_release_key_value(&jkv3);
+	slow_release_kv(&jkv3);
 	free(tmp3);
 
 	total++;
@@ -370,9 +369,9 @@ void test_parse_kv()
 	if (test_malloc_string(&s4, "\"key\":true") != 0) return;
 	char* tmp4 = s4;
 	slow_kv_t jkv4; 
-	if (slow_parse_key_value(&s4, &jkv4) == 0 && slow_cmp_string(&jkv4.key, "key") == 0
+	if (slow_parse_kv(&s4, &jkv4) == 0 && slow_cmp_string(&jkv4.key, "key") == 0
 		&& jkv4.value.type == ST_TRUE) pass++;
-	slow_release_key_value(&jkv4);
+	slow_release_kv(&jkv4);
 	free(tmp4);
 
 	total++;
@@ -380,9 +379,9 @@ void test_parse_kv()
 	if (test_malloc_string(&s5, "\"key\":1234.1234") != 0) return;
 	char* tmp5 = s5;
 	slow_kv_t jkv5;
-	if (slow_parse_key_value(&s5, &jkv5) == 0 && slow_cmp_string(&jkv5.key, "key") == 0
+	if (slow_parse_kv(&s5, &jkv5) == 0 && slow_cmp_string(&jkv5.key, "key") == 0
 		&& jkv5.value.type == ST_NUMBER && slow_cmp_number((slow_number_t*)jkv5.value.p, 1234.1234) == 0) pass++;
-	slow_release_key_value(&jkv5);
+	slow_release_kv(&jkv5);
 	free(tmp5);
 
 	total++;
@@ -390,9 +389,9 @@ void test_parse_kv()
 	if (test_malloc_string(&s6, "\"key\":\"value\"") != 0) return;
 	char* tmp6 = s6;
 	slow_kv_t jkv6;
-	if (slow_parse_key_value(&s6, &jkv6) == 0 && slow_cmp_string(&jkv6.key, "key") == 0
+	if (slow_parse_kv(&s6, &jkv6) == 0 && slow_cmp_string(&jkv6.key, "key") == 0
 		&& jkv6.value.type == ST_STRING && slow_cmp_string((slow_string_t*)jkv6.value.p, "value") == 0) pass++;
-	slow_release_key_value(&jkv6);
+	slow_release_kv(&jkv6);
 	free(tmp6);
 
 	total++;
@@ -400,14 +399,14 @@ void test_parse_kv()
 	if (test_malloc_string(&s7, "\"key\":{\"key\":\"value\"}") != 0) return;
 	char* tmp7 = s7;
 	slow_kv_t jkv7;
-	if (slow_parse_key_value(&s7, &jkv7) == 0 && slow_cmp_string(&jkv7.key, "key") == 0
+	if (slow_parse_kv(&s7, &jkv7) == 0 && slow_cmp_string(&jkv7.key, "key") == 0
 		&& jkv7.value.type == ST_OBJECT && ((slow_object_t*)jkv7.value.p)->next != NULL)
 	{
 		slow_kv_list_t *jkvl = ((slow_object_t*)jkv7.value.p)->next;
 		if (jkvl->next == NULL && slow_cmp_string(&(jkvl->node.key), "key") == 0
 			&& jkvl->node.value.type == ST_STRING && slow_cmp_string((slow_string_t*)jkvl->node.value.p, "value") == 0) pass++;
 	}
-	slow_release_key_value(&jkv7);
+	slow_release_kv(&jkv7);
 	free(tmp7);
 }
 

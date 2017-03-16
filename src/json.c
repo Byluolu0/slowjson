@@ -34,15 +34,13 @@ int slow_init_number(slow_number_t* ptrNumber, double d)
 	return SLOW_OK;
 }
 
-int slow_init_string(slow_string_t* ptrString, const char* s)
+int slow_init_string(slow_string_t* ps)
 {
-	if (ptrString == NULL || s == NULL) return SLOW_NULL_PTR;
-	int len = strlen(s);
-	ptrString->p = (char*)malloc(len + 1);
-	if (ptrString->p == NULL) return -1;
-	memcpy(ptrString->p, s, len);
-	ptrString->p[len] = '\0';
-	ptrString->len = len;
+	if (ps == NULL) return SLOW_NULL_PTR;
+	ps->p = (char*)malloc(STRING_INIT_SIZE);
+	if (ps->p == NULL) return SLOW_MOMERY_ERROR;
+	ps->size = STRING_INIT_SIZE;
+	ps->offset = 0;
 	return SLOW_OK;
 }
 
@@ -60,24 +58,27 @@ int slow_init_array(slow_array_t* ptrArray)
 	return SLOW_OK;
 }
 
-int slow_init_ret_string(slow_ret_string_t* ptr)
+int slow_string_push(slow_string_t* ps, const char* s)
 {
-	if (ptr == NULL) return SLOW_NULL_PTR;
-	ptr->offset = 0;
-	ptr->size = RET_STRING_INIT_SIZE;
-	ptr->p = (char*)malloc(ptr->size);
-	if (ptr->p == NULL) return -1;
+	if (ps == NULL || s == NULL) return SLOW_NULL_PTR;
+	int len = strlen(s);
+	int ret = slow_string_check_size(ps, len);
+	if (ret != SLOW_OK) return ret;
+
+	memcpy(ps->p + ps->offset, s, len);
+	ps->offset += len;
 	return SLOW_OK;
 }
 
-int slow_check_ret_string_size(slow_ret_string_t* ptr, int size)
+int slow_string_check_size(slow_string_t* ps, int size)
 {
-	if (ptr == NULL || size < 0) return SLOW_NULL_PTR;
-	if (ptr->offset + size <= ptr->size) return 0;
-	char* temp = (char*)realloc(ptr->p, ptr->size * 2);
-	if (temp == NULL) return -1;
-	ptr->p = temp;
-	ptr->size = ptr->size * 2;
+	if (ps == NULL) return SLOW_NULL_PTR;
+	if (size < 0) return SLOW_PARAM_ERROR;
+	if (ps->offset + size <= ps->size) return SLOW_OK;
+	ps->size += ps->size >> 1;
+	char* temp = (char*)realloc(ps->p, ps->size);
+	if (temp == NULL) return SLOW_MOMERY_ERROR;
+	ps->p = temp;
 	return SLOW_OK;
 }
 
@@ -279,7 +280,7 @@ int slow_release_base(slow_base_t *ptrBase)
 	else if (ptrBase->type == ST_KEY_VALUE)
 	{
 		slow_kv_t* jkv = (slow_kv_t*)ptrBase->p;
-		slow_release_key_value(jkv);
+		slow_release_kv(jkv);
 		free(jkv);
 	}
 	else if (ptrBase->type == ST_OBJECT)
@@ -301,19 +302,17 @@ int slow_release_base(slow_base_t *ptrBase)
 	return SLOW_OK;
 }
 
-int slow_release_string(slow_string_t* ptrString)
+int slow_release_string(slow_string_t* ps)
 {
-	if (ptrString == NULL) return SLOW_NULL_PTR;
+	if (ps == NULL) return SLOW_NULL_PTR;
 
-	if (ptrString->len > 0 && ptrString->p != NULL)
-	{
-		free(ptrString->p);
-		ptrString->len = 0;
-	}
+	free(ps->p);
+	ps->offset = 0;
+	ps->size = 0;
 	return SLOW_OK;
 }
 
-int slow_release_key_value(slow_kv_t* ptrKeyValue)
+int slow_release_kv(slow_kv_t* ptrKeyValue)
 {
 	if (ptrKeyValue == NULL) return SLOW_NULL_PTR;
 
@@ -330,7 +329,7 @@ int slow_release_object(slow_object_t *ptrObject)
 	{
 		slow_kv_list_t* jkvl = ptrObject->next;
 		ptrObject->next = jkvl->next;
-		slow_release_key_value(&(jkvl->node));
+		slow_release_kv(&(jkvl->node));
 		free(jkvl);
 	}
 	return SLOW_OK;
@@ -349,17 +348,4 @@ int slow_release_array(slow_array_t* ptrArray)
 	}
 	return SLOW_OK;
 }
-
-int slow_release_ret_string(slow_ret_string_t* ptrRetString)
-{
-	if (ptrRetString == NULL) return SLOW_NULL_PTR;
-
-	if (ptrRetString->p == NULL) return 0;
-
-	free(ptrRetString->p);
-	ptrRetString->offset = 0;
-	ptrRetString->size = 0;
-	return SLOW_OK;
-}
-
 

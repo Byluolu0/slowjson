@@ -52,8 +52,9 @@ typedef struct slow_number_s slow_number_t;
 
 struct slow_string_s
 {
-	int len;
 	char* p;
+	int size;
+	int offset;
 };
 typedef struct slow_string_s slow_string_t;
 
@@ -90,23 +91,16 @@ struct slow_array_s
 };
 typedef struct slow_array_s slow_array_t;
 
-struct slow_ret_string_s
-{
-	char* p;
-	int size;
-	int offset;
-};
-typedef struct slow_ret_string_s slow_ret_string_t;
-
 int slow_init_null(slow_null_t* ptrNull);
 int slow_init_false(slow_false_t* ptrFalse);
 int slow_init_true(slow_true_t* ptrTrue);
 int slow_init_number(slow_number_t* ptrNumber, double d);
-int slow_init_string(slow_string_t* ptrString, const char* s);
+int slow_init_string(slow_string_t* ps);
 int slow_init_object(slow_object_t* ptrObject);
 int slow_init_array(slow_array_t* ptrArray);
-int slow_init_ret_string(slow_ret_string_t* ptr);
-int slow_check_ret_string_size(slow_ret_string_t* ptr, int size);
+int slow_string_check_size(slow_string_t* ps, int size);
+
+int slow_string_push(slow_string_t* ps, const char* s);
 
 int slow_object_get_base(slow_object_t* ptrObject, const char* k, slow_base_t** b);
 int slow_object_get_null(slow_object_t* ptrObject, const char* k, int* n);
@@ -121,10 +115,9 @@ int slow_array_get_by_index(slow_array_t* ptrArray, int index, slow_base_t** b);
 
 int slow_release_string(slow_string_t* ptrString);
 int slow_release_base(slow_base_t* ptrBase);
-int slow_release_key_value(slow_kv_t* ptrKeyValue);
+int slow_release_kv(slow_kv_t* ptrKeyValue);
 int slow_release_object(slow_object_t* ptrObject);
 int slow_release_array(slow_array_t* ptrArray);
-int slow_release_ret_string(slow_ret_string_t* ptrRetString);
 
 
 #endif 

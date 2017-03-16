@@ -140,51 +140,31 @@ int slow_parse_number(char** src, slow_number_t* psn)
 	return SLOW_OK;
 }
 
-int slow_parse_string(char** src, slow_string_t* objString, int isKey)
+int slow_parse_string(char** src, slow_string_t* ps)
 {
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
+	if (src == NULL || *src == NULL || ps == NULL) return SLOW_NULL_PTR;
 
-	int count = 0;
-	if (slow_valid_string(*src, &count, isKey) != 0) return -1;
+	if (*src != '\"') return SLOW_INVALID_VALUE;
 
-	objString->p = (char*)malloc(count + 1);
-	memcpy(objString->p, (*src) + 1, count);
-	objString->p[count] = '\0';
-	objString->len = count;
-	*src += (2 + count);
-
-	return SLOW_OK;
-}
-
-int slow_valid_string(char* src, int* count, int isKey)
-{
-	if (src == NULL) return SLOW_NULL_PTR;
-
-	if (*src != '"') return -1;
-
-	char* temp = src;
-	temp++;
-	int tempCount = 0;
-	while(*temp) 
+	int ret = SLOW_UNKNOWN;
+	char* temp = *src;
+	for (;;)
 	{
-		if (*temp == '"') break;
-		else tempCount++;
-
-		temp++;
+		if (*temp == '\"')
+		{
+			slow_string_push(ps, *temp);
+			temp++;
+			*src = temp;
+			return SLOW_OK;
+		}
+		else if (*temp == '\\')
+		{
+			temp++;
+		}
 	}
-
-	if (!isKey && tempCount == 0 && src[1 + tempCount] == '"') return SLOW_OK;
-
-	if (tempCount == 0) return -1;
-
-	if (src[1 + tempCount] != '"') return -1;
-
-	*count = tempCount;
-
-	return SLOW_OK;
 }
 
-int slow_parse_key_value(char** src, slow_kv_t* objKeyValue)
+int slow_parse_kv(char** src, slow_kv_t* objKeyValue)
 {
 	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
 
@@ -221,7 +201,7 @@ int slow_parse_object(char** src, slow_object_t* ptrObject)
 			return -1;
 		}
 
-		if (slow_parse_key_value(src, &(node->node)) != 0)
+		if (slow_parse_kv(src, &(node->node)) != 0)
 		{
 			free(node);
 			slow_release_object(ptrObject);
