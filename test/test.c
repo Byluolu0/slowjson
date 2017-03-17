@@ -7,9 +7,29 @@
 
 #include "../src/parse.h"
 #include "../src/stringpify.h"
+#include "../src/json.h"
+#include "../src/common.h"
 
 static int total = 0;
 static int pass = 0;
+
+void test_eq_int(int expect, int actual)
+{
+	total++;
+	if (expect == actual) pass++;
+}
+
+void test_eq_double(double expect, double actual)
+{
+	total++;
+	if (fabs(expect - actual) < ACCURACY) pass++;
+}
+
+void test_eq_string(const char* expect, const char* actual, int len)
+{
+	total++;
+	if (memcmp(expect, actual, len) == 0) pass++;
+}
 
 int test_malloc_string(char** s, const char* str)
 {
@@ -19,18 +39,6 @@ int test_malloc_string(char** s, const char* str)
 	if (*s == NULL) return -1;
 	memcpy(*s, str, len); (*s)[len] = '\0';
 	return 0;
-}
-
-void test_remove_useless()
-{
-	total++;
-	char src[] = "  abd \trtq\n\n\rr   ";
-	char dst[] = "abdrtqr";
-	char *temp = NULL;
-	slow_remove_useless(src, &temp);
-	int result = strcmp(temp, dst);
-	if (result == 0) pass++;
-	free(temp);
 }
 
 void test_parse_null()
@@ -521,7 +529,6 @@ void test_to_string()
 
 int main()
 {
-	test_remove_useless();
 	test_parse_null();
 	test_parse_true();
 	test_parse_false();

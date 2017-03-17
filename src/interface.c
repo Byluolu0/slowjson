@@ -12,13 +12,7 @@ int slow_raw2object(char* s, slow_object_t *jo)
 	assert(jo != NULL);
 
 	int ret;
-
-	char* temp = NULL;
-	slow_remove_useless(s, &temp);
-	char* freeTemp = temp;
-	if ((ret = slow_parse_object(&temp, jo)) != SLOW_OK) return ret;
-	
-	free(freeTemp);
+	if ((ret = slow_parse_object(&s, jo)) != SLOW_OK) return ret;
 
 	return SLOW_OK;
 }

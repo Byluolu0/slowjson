@@ -3,7 +3,7 @@
 
 #include "json.h"
 
-void slow_remove_useless(const char* src, char** dst);
+void slow_skip_whitespace(char** src);
 
 int slow_parse_null(char** src, slow_null_t* pn);
 
