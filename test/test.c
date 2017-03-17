@@ -38,7 +38,7 @@ void test_eq_double(double expect, double actual)
 void test_eq_string(const char* expect, const char* actual, int len)
 {
 	total++;
-	if (memcmp(expect, actual, len) == 0) pass++;
+	if (strlen(expect) == len && memcmp(expect, actual, len) == 0) pass++;
 }
 
 void test_unpass_parse(const char* s)
@@ -69,6 +69,7 @@ void test_pass_parse_null(const char* s)
 	test_eq_int(SLOW_OK, slow_parse(s, &sb));
 	test_eq_int(ST_NULL, sb.type);
 	test_eq_int(1, ((slow_null_t*)sb.p)->flag);
+	slow_release_base(&sb);
 }
 
 void test_parse_null()
@@ -86,6 +87,7 @@ void test_pass_parse_false(const char* s)
 	test_eq_int(SLOW_OK, slow_parse(s, &sb));
 	test_eq_int(ST_FALSE, sb.type);
 	test_eq_int(1, ((slow_false_t*)sb.p)->flag);
+	slow_release_base(&sb);
 }
 
 void test_parse_false()
@@ -96,15 +98,32 @@ void test_parse_false()
 	test_unpass_parse("fals");
 }
 
+void test_pass_parse_true(const char* s)
+{
+	slow_base_t sb;
+	slow_init_base(&sb);
+	test_eq_int(SLOW_OK, slow_parse(s, &sb));
+	test_eq_int(ST_TRUE, sb.type);
+	test_eq_int(1, ((slow_true_t*)sb.p)->flag);
+	slow_release_base(&sb);
+}
+
+void test_parse_true()
+{
+	test_pass_parse_true("true");
+	test_pass_parse_true("trueeeee");
+	test_unpass_parse("ture");
+	test_unpass_parse("tru");
+}
+
 void test_number(const char* sn, double d)
 {
-	total++;
-	char* s = NULL;
-	if (test_malloc_string(&s, sn) != 0) return;
-	char* tmp = s;
-	slow_number_t jn;
-	if (slow_parse_number(&tmp, &jn) == 0 && slow_cmp_number(&jn, d) == 0) pass++;
-	free(s);
+	slow_base_t sb;
+	slow_init_base(&sb);
+	test_eq_int(SLOW_OK, slow_parse(sn, &sb));
+	test_eq_int(ST_NUMBER, sb.type);
+	test_eq_double(d, ((slow_number_t*)sb.p)->d);
+	slow_release_base(&sb);
 }
 
 void test_parse_number()
@@ -120,18 +139,13 @@ void test_parse_number()
 
 void test_string(const char* src, const char* cmp)
 {
-	total++;
-	char* s = NULL;
-	if (test_malloc_string(&s, src) != 0) return;
-	char* tmp = s;
-	slow_string_t ss;
-	slow_init_string(&ss);
-	if (slow_parse_string(&tmp, &ss) == 0)
-	{
-		if (slow_cmp_string_len(&ss, cmp, strlen(cmp)) == 0) pass++;
-	}
-	slow_release_string(&ss);
-	free(s);
+	slow_base_t sb;
+	slow_init_base(&sb);
+	test_eq_int(SLOW_OK, slow_parse(src, &sb));
+	test_eq_int(ST_STRING, sb.type);
+	slow_string_t* temp = (slow_string_t*)sb.p;
+	test_eq_string(cmp, temp->p, temp->offset);
+	slow_release_base(&sb);
 }
 
 void test_parse_string()
@@ -490,9 +504,10 @@ int main()
 {
 	test_parse_null();
 	test_parse_false();
-	/*
+	test_parse_true();
 	test_parse_number();
 	test_parse_string();
+	/*
 	test_parse_base();
 	test_parse_object();
 	test_parse_kv();

@@ -133,162 +133,160 @@ int slow_parse_number(slow_src_t* pss, slow_number_t* psn)
 	return SLOW_OK;
 }
 
-int slow_parse_string(char** src, slow_string_t* ps)
+int slow_parse_string(slow_src_t* pss, slow_string_t* ps)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
+	assert(pss != NULL);
 	assert(ps != NULL);
 
-	slow_skip_whitespace(src);
+	slow_skip_whitespace(pss);
 
-	char* temp = *src;
-	if (*temp != '\"') return SLOW_INVALID_VALUE;
-	temp++;
+	const char* json = pss->json;
+	int offset = pss->offset;
+	if (json[offset] != '\"') return SLOW_INVALID_VALUE;
+	offset++;
 	for (;;)
 	{
-		if (*temp == '\"')
+		if (json[offset] == '\"')
 		{
-			temp++;
-			*src = temp;
+			offset++;
+			pss->offset = offset;
 			return SLOW_OK;
 		}
-		else if (*temp == '\\')
+		else if (json[offset] == '\\')
 		{
-			temp++;
-			if (*temp == '\\') slow_string_pushc(ps, '\\');
-			else if (*temp == '\"') slow_string_pushc(ps, '\"');
-			else if (*temp == '/') slow_string_pushc(ps, '/');
- 			else if (*temp == 'r') slow_string_pushc(ps, '\r');
-			else if (*temp == 'n') slow_string_pushc(ps, '\n');
-			else if (*temp == 't') slow_string_pushc(ps, '\t');
-			else if (*temp == 'b') slow_string_pushc(ps, '\b');
-			else if (*temp == 'f') slow_string_pushc(ps, '\f');
-			else if (*temp == 'u')
+			offset++;
+			if (json[offset] == '\\') slow_string_pushc(ps, '\\');
+			else if (json[offset] == '\"') slow_string_pushc(ps, '\"');
+			else if (json[offset] == '/') slow_string_pushc(ps, '/');
+ 			else if (json[offset] == 'r') slow_string_pushc(ps, '\r');
+			else if (json[offset] == 'n') slow_string_pushc(ps, '\n');
+			else if (json[offset] == 't') slow_string_pushc(ps, '\t');
+			else if (json[offset] == 'u')
 			{
 				//todo
 			}
 		}
-		else if (*temp == '\0') return SLOW_INVALID_VALUE;
-		else slow_string_pushc(ps, *temp);
-		temp++;
+		else if (json[offset] == '\0') return SLOW_INVALID_VALUE;
+		else slow_string_pushc(ps, json[offset]);
+		offset++;
 	}
 }
 
-int slow_parse_kv(char** src, slow_kv_t* pkv)
+int slow_parse_kv(slow_src_t* pss, slow_kv_t* pskv)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-	assert(pkv != NULL);
+	assert(pss != NULL);
+	assert(pskv != NULL);
 
 	int ret;
 
-	slow_skip_whitespace(src);
-	if (slow_check_type(*src) != ST_STRING) return SLOW_INVALID_VALUE;
-	if ((ret = slow_parse_string(src, &pkv->key)) != SLOW_OK) return ret;
-	slow_skip_whitespace(src);
-	if (slow_check_type(*src) != ST_COLON) return SLOW_INVALID_VALUE;
-	*src += 1;
-	slow_skip_whitespace(src);
-	if ((ret = slow_parse_base(src, &pkv->value)) != SLOW_OK) return ret;
+	slow_skip_whitespace(pss);
+	if (slow_check_type(pss) != ST_STRING) return SLOW_INVALID_VALUE;
+	if ((ret = slow_parse_string(pss, &pskv->key)) != SLOW_OK) return ret;
+	slow_skip_whitespace(pss);
+	if (slow_check_type(pss) != ST_COLON) return SLOW_INVALID_VALUE;
+	pss->offset += 1;
+	slow_skip_whitespace(pss);
+	if ((ret = slow_parse_base(pss, &pskv->value)) != SLOW_OK) return ret;
 
 	return SLOW_OK;
 }
 
-int slow_parse_object(char** src, slow_object_t* po)
+int slow_parse_object(slow_src_t* pss, slow_object_t* pso)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-	assert(po != NULL);
+	assert(pss != NULL);
+	assert(pso != NULL);
 
 	int ret;
 
-	slow_skip_whitespace(src);
-	if (slow_check_type(*src) != ST_OBJECT) return SLOW_INVALID_VALUE;
-	*src += 1;
+	const char* json = pss->json;
+	int offset = pss->offset;
 
-	slow_skip_whitespace(src);
-	if (slow_check_type(*src) == ST_OBJECT_END)
+	slow_skip_whitespace(pss);
+	if (slow_check_type(pss) != ST_OBJECT) return SLOW_INVALID_VALUE;
+	pss->offset += 1;
+
+	slow_skip_whitespace(pss);
+	if (slow_check_type(pss) == ST_OBJECT_END)
 	{
-		*src += 1;
+		pss->offset += 1;
 		return SLOW_OK;
 	}
 
 	while (1)
 	{
-		slow_kv_list_t* node = (slow_kv_list_t*)malloc(sizeof(slow_kv_list_t));
-		slow_init_kv_list(node);
-		slow_skip_whitespace(src);
-		if ((ret = slow_parse_kv(src, &node->node)) != SLOW_OK)
+		slow_kv_list_t* pskvl = (slow_kv_list_t*)malloc(sizeof(slow_kv_list_t));
+		slow_init_kv_list(pskvl);
+		slow_skip_whitespace(pss);
+		if ((ret = slow_parse_kv(pss, &pskvl->node)) != SLOW_OK)
 		{
-			free(node);
-			slow_release_object(po);
+			free(pskvl);
+			slow_release_object(pso);
 			return ret;
 		}
 
-		node->next = po->next;
-		po->next = node;
-		slow_skip_whitespace(src);
-		if (slow_check_type(*src) == ST_DOT)
+		pskvl->next = pso->next;
+		pso->next = pskvl;
+		slow_skip_whitespace(pss);
+		if (slow_check_type(pss) == ST_DOT)
 		{
-			*src += 1;
+			pss->offset += 1;
 			continue;
 		}
-		else if (slow_check_type(*src) == ST_OBJECT_END) 
+		else if (slow_check_type(pss) == ST_OBJECT_END)
 		{
-			*src += 1;
+			pss->offset += 1;
 			break;
 		}
 		else
 		{
-			slow_release_object(po);
+			slow_release_object(pso);
 			return SLOW_INVALID_VALUE;
 		}
 	}
 	return SLOW_OK;
 }
 
-int slow_parse_array(char** src, slow_array_t* pa)
+int slow_parse_array(slow_src_t* pss, slow_array_t* psa)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-	assert(pa != NULL);
+	assert(pss != NULL);
+	assert(psa != NULL);
 
 	int ret;
 
-	slow_skip_whitespace(src);
-	if (slow_check_type(*src) != ST_ARRAY) return SLOW_INVALID_VALUE;
-	*src += 1;
+	slow_skip_whitespace(pss);
+	if (slow_check_type(pss) != ST_ARRAY) return SLOW_INVALID_VALUE;
+	pss->offset += 1;
 
-	slow_skip_whitespace(src);
-	if (slow_check_type(*src) == ST_ARRAY_END)
+	slow_skip_whitespace(pss);
+	if (slow_check_type(pss) == ST_ARRAY_END)
 	{
-		*src += 1;
+		pss->offset += 1;
 		return SLOW_OK;
 	}
 
 	while (1)
 	{
-		slow_base_list_t* jbl = (slow_base_list_t*)malloc(sizeof(slow_base_list_t));
-		slow_init_base_list(jbl);
-		slow_skip_whitespace(src);
-		if ((ret = slow_parse_base(src, &jbl->node)) != SLOW_OK) return ret;
-		jbl->next = pa->next;
+		slow_base_list_t* jsbl = (slow_base_list_t*)malloc(sizeof(slow_base_list_t));
+		slow_init_base_list(jsbl);
+		slow_skip_whitespace(pss);
+		if ((ret = slow_parse_base(pss, &jsbl->node)) != SLOW_OK) return ret;
+		jsbl->next = psa->next;
 
-		pa->next = jbl;
-		slow_skip_whitespace(src);
-		if (slow_check_type(*src) == ST_DOT)
+		psa->next = jsbl;
+		slow_skip_whitespace(pss);
+		if (slow_check_type(pss) == ST_DOT)
 		{
-			*src += 1;
+			pss->offset += 1;
 			continue;
 		}
-		else if (slow_check_type(*src) == ST_ARRAY_END)
+		else if (slow_check_type(pss) == ST_ARRAY_END)
 		{
-			*src += 1;
+			pss->offset += 1;
 			break;
 		}
 		else
 		{
-			slow_release_array(pa);
+			slow_release_array(psa);
 			return SLOW_INVALID_VALUE;
 		}
 	}
@@ -359,30 +357,30 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 	{
 		slow_string_t *ps = (slow_string_t*)malloc(sizeof(slow_string_t));
 		slow_init_string(ps);
-		if ((ret = slow_parse_string(src, ps)) != SLOW_OK)
+		if ((ret = slow_parse_string(pss, ps)) != SLOW_OK)
 		{
 			slow_release_string(ps);
 			return ret;
 		}
 
-		pb->type = ST_STRING;
-		pb->p = (void*)ps;
+		psb->type = ST_STRING;
+		psb->p = (void*)ps;
 	}
 	else if (jsonType == ST_OBJECT)
 	{
-		slow_object_t *jo = (slow_object_t*)malloc(sizeof(slow_object_t));
-		slow_init_object(jo);
-		if ((ret = slow_parse_object(src, jo)) != SLOW_OK) return ret;
-		pb->type = ST_OBJECT;
-		pb->p = (void*)jo;
+		slow_object_t *jso = (slow_object_t*)malloc(sizeof(slow_object_t));
+		slow_init_object(jso);
+		if ((ret = slow_parse_object(pss, jso)) != SLOW_OK) return ret;
+		psb->type = ST_OBJECT;
+		psb->p = (void*)jso;
 	}
 	else if (jsonType == ST_ARRAY)
 	{
-		slow_array_t *ja = (slow_array_t*)malloc(sizeof(slow_array_t));
-		slow_init_array(ja);
-		if ((ret = slow_parse_array(src, ja)) != SLOW_OK) return ret;
-		pb->type = ST_ARRAY;
-		pb->p = (void*)ja;
+		slow_array_t *jsa = (slow_array_t*)malloc(sizeof(slow_array_t));
+		slow_init_array(jsa);
+		if ((ret = slow_parse_array(pss, jsa)) != SLOW_OK) return ret;
+		psb->type = ST_ARRAY;
+		psb->p = (void*)jsa;
 	}
 	else
 	{

@@ -24,15 +24,15 @@ int slow_parse_false(slow_src_t* pss, slow_false_t* psf);
 
 int slow_parse_number(slow_src_t* pss, slow_number_t* psn);
 
-int slow_parse_string(char** src, slow_string_t* ps);
+int slow_parse_string(slow_src_t* pss, slow_string_t* ps);
 
-int slow_parse_kv(char** src, slow_kv_t* pkv);
+int slow_parse_kv(slow_src_t* pss, slow_kv_t* pskv);
 
-int slow_parse_object(char** src, slow_object_t* po);
+int slow_parse_object(slow_src_t* pss, slow_object_t* pso);
 
 int slow_parse_base(slow_src_t* pss, slow_base_t* psb);
 
-int slow_parse_array(char** src, slow_array_t* pa);
+int slow_parse_array(slow_src_t* pss, slow_array_t* psa);
 
 int slow_check_type(slow_src_t* pss);
 
