@@ -10,114 +10,126 @@
 #include "parse.h"
 #include "json.h"
 
-void slow_skip_whitespace(char** src)
+void slow_init_src(slow_src_t* pss, const char* src)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-
-	char* temp = *src;
-	while (*temp == ' ' || *temp == '\n' || *temp == '\r' || *temp == '\t') temp++;
-	*src = temp;
+	pss->json = src;
+	pss->offset = 0;
 }
 
-int slow_parse_literal(char** src, const char* literal)
+void slow_skip_whitespace(slow_src_t* pss)
+{
+	assert(pss != NULL);
+
+	const char* json = pss->json;
+	int i = pss->offset;
+	while (json[i] == ' ' || json[i] == '\n' || json[i] == '\r' || json[i] == '\t') i++;
+	pss->offset = i;
+}
+
+int slow_parse(const char* src, slow_base_t* psb)
 {
 	assert(src != NULL);
-	assert(*src != NULL);
+	assert(psb != NULL);
+
+	slow_src_t ss;
+	slow_init_src(&ss, src);
+
+	return slow_parse_base(&src, psb);
+}
+
+int slow_parse_literal(slow_src_t* pss, const char* literal)
+{
+	assert(pss != NULL);
 	assert(literal != NULL);
 
-	char* temp = *src;
+	const char* json = pss->json;
+	int offset = pss->offset;
 	int i = 0;
 	for (; literal[i]; i++)
 	{
-		if (temp[i] != literal[i]) return SLOW_INVALID_VALUE;
+		if (json[offset + i] != literal[i]) return SLOW_INVALID_VALUE;
 	}
-	*src += i;
+	pss->offset += i;
 	return SLOW_OK;
 }
 
-int slow_parse_null(char** src, slow_null_t* pn)
+int slow_parse_null(slow_src_t* pss, slow_null_t* psn)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-	assert(pn != NULL);
+	assert(pss != NULL);
+	assert(psn != NULL);
 
 	int ret;
 
-	slow_skip_whitespace(src);
-	if ((ret = slow_parse_literal(src, "null")) != SLOW_OK) return ret;
-	pn->flag = 1;
+	slow_skip_whitespace(pss);
+	if ((ret = slow_parse_literal(pss, "null")) != SLOW_OK) return ret;
+	psn->flag = 1;
 	return SLOW_OK;
 }
 
-int slow_parse_true(char** src, slow_true_t* pt)
+int slow_parse_true(slow_src_t* pss, slow_true_t* pst)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-	assert(pt != NULL);
+	assert(pss != NULL);
+	assert(pst != NULL);
 
 	int ret;
 
-	slow_skip_whitespace(src);
-	if ((ret = slow_parse_literal(src, "true")) != SLOW_OK) return ret;
-	pt->flag = 1;
+	slow_skip_whitespace(pss);
+	if ((ret = slow_parse_literal(pss, "true")) != SLOW_OK) return ret;
+	pst->flag = 1;
 	return SLOW_OK;
 }
 
-int slow_parse_false(char** src, slow_false_t* pf)
+int slow_parse_false(slow_src_t* pss, slow_false_t* psf)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-	assert(pf != NULL);
+	assert(pss != NULL);
+	assert(psf != NULL);
 
 	int ret;
 
-	slow_skip_whitespace(src);
-	if ((ret = slow_parse_literal(src, "false")) != SLOW_OK) return ret;
-	pf->flag = 1;
+	slow_skip_whitespace(pss);
+	if ((ret = slow_parse_literal(pss, "false")) != SLOW_OK) return ret;
+	psf->flag = 1;
 	return SLOW_OK;
 }
 
-int slow_parse_number(char** src, slow_number_t* pn)
+int slow_parse_number(slow_src_t* pss, slow_number_t* psn)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
-	assert(pn != NULL);
+	assert(pss != NULL);
+	assert(psn != NULL);
 
-	slow_skip_whitespace(src);
+	slow_skip_whitespace(pss);
 	
-	char* temp = *src;
-	if (*temp == '-') temp++;
-	if (*temp == '0')
-	{
-		temp++;
-	}
+	const char* json = pss->json;
+	int offset = pss->offset;
+
+	if (json[offset] == '-') offset++;
+	if (json[offset] == '0') offset++;
 	else
 	{	
-		if (!ISDIGIT1TO9(*temp)) return SLOW_INVALID_VALUE;
-		while (ISDIGIT(*temp)) temp++;
+		if (!ISDIGIT1TO9(json[offset])) return SLOW_INVALID_VALUE;
+		while (ISDIGIT(json[offset])) offset++;
 	}
 
-	if (*temp == '.')
+	if (json[offset] == '.')
 	{
-		temp++;
-		if (!ISDIGIT(*temp)) return SLOW_INVALID_VALUE;
-		while (ISDIGIT(*temp)) temp++;
+		offset++;
+		if (!ISDIGIT(json[offset])) return SLOW_INVALID_VALUE;
+		while (ISDIGIT(json[offset])) offset++;
 	}
 
-	if (*temp == 'e' || *temp == 'E')
+	if (json[offset] == 'e' || json[offset] == 'E')
 	{
-		temp++;
-		if (*temp == '-' || *temp == '+') temp++;
-		if (!ISDIGIT(*temp)) return SLOW_INVALID_VALUE;
-		while (ISDIGIT(*temp)) temp++;
+		offset++;
+		if (json[offset] == '-' || json[offset] == '+') offset++;
+		if (!ISDIGIT(json[offset])) return SLOW_INVALID_VALUE;
+		while (ISDIGIT(json[offset])) offset++;
 	}
 
 	errno = 0;
-	double d = strtod(*src, NULL);
+	double d = strtod(pss->json[pss->offset], NULL);
 	if (errno == ERANGE) return SLOW_INVALID_VALUE;
-	pn->d = d;
-	*src = temp;
+	psn->d = d;
+	pss->offset = offset;
 	return SLOW_OK;
 }
 
@@ -283,64 +295,65 @@ int slow_parse_array(char** src, slow_array_t* pa)
 	return SLOW_OK;
 }
 
-int slow_check_type(char* src)
+int slow_check_type(slow_src_t* pss)
 {
-	assert(src != NULL);
+	assert(pss != NULL);
 
-	if (*src == 'n') return ST_NULL;
-	else if (*src == 'f') return ST_FALSE;
-	else if (*src == 't') return ST_TRUE;
-	else if (isdigit(*src)) return ST_NUMBER;
-	else if (*src == '"') return ST_STRING;
-	else if (*src == '{') return ST_OBJECT;
-	else if (*src == '[') return ST_ARRAY;
-	else if (*src == ',') return ST_DOT;
-	else if (*src == ':') return ST_COLON;
-	else if (*src == '}') return ST_OBJECT_END;
-	else if (*src == ']') return ST_ARRAY_END;
+	const char* json = pss->json;
+	if (*json == 'n') return ST_NULL;
+	else if (*json == 'f') return ST_FALSE;
+	else if (*json == 't') return ST_TRUE;
+	else if (ISDIGIT(*json)) return ST_NUMBER;
+	else if (*json == '"') return ST_STRING;
+	else if (*json == '{') return ST_OBJECT;
+	else if (*json == '[') return ST_ARRAY;
+	else if (*json == ',') return ST_DOT;
+	else if (*json == ':') return ST_COLON;
+	else if (*json == '}') return ST_OBJECT_END;
+	else if (*json == ']') return ST_ARRAY_END;
 	else return ST_NONE;
 }
 
-int slow_parse_base(char** src, slow_base_t* pb)
+int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 {
-	assert(src != NULL);
-	assert(*src != NULL);
+	assert(pss != NULL);
+	assert(psb != NULL);
 
 	int ret;
 
-	slow_skip_whitespace(src);
-	int jsonType = slow_check_type(*src);
+	slow_skip_whitespace(pss);
+	int jsonType = slow_check_type(pss);
 	if (jsonType == ST_NULL)
 	{
-		slow_null_t *jn = (slow_null_t*)malloc(sizeof(slow_null_t));
-		slow_init_null(jn);
-		if ((ret = slow_parse_null(src, jn)) != SLOW_OK) return ret;
-		pb->type = ST_NULL;
-		pb->p = (void*)jn;
+		slow_null_t *psn = (slow_null_t*)malloc(sizeof(slow_null_t));
+		slow_init_null(psn);
+		if ((ret = slow_parse_null(pss, psn)) != SLOW_OK) return ret;
+		psb->type = ST_NULL;
+		psb->p = (void*)psn;
 	}
 	else if (jsonType == ST_FALSE)
 	{
-		slow_false_t *jf = (slow_false_t*)malloc(sizeof(slow_false_t));
-		slow_init_false(jf);
-		if ((ret = slow_parse_false(src, jf)) != SLOW_OK) return ret;
-		pb->type = ST_FALSE;
-		pb->p = (void*)jf;
+		slow_false_t *psf = (slow_false_t*)malloc(sizeof(slow_false_t));
+		slow_init_false(psf);
+		if ((ret = slow_parse_false(pss, psf)) != SLOW_OK) return ret;
+		psb->type = ST_FALSE;
+		psb->p = (void*)psf;
 	}
 	else if (jsonType == ST_TRUE)
 	{
-		slow_true_t *jt = (slow_true_t*)malloc(sizeof(slow_true_t));
-		slow_init_true(jt);
-		if ((ret = slow_parse_true(src, jt)) != SLOW_OK) return ret;
-		pb->type = ST_TRUE;
-		pb->p = (void*)jt;
+		slow_true_t *pst = (slow_true_t*)malloc(sizeof(slow_true_t));
+		slow_init_true(pst);
+		if ((ret = slow_parse_true(pss, pst)) != SLOW_OK) return ret;
+		psb->type = ST_TRUE;
+		psb->p = (void*)pst;
 	}
 	else if (jsonType == ST_NUMBER)
 	{
-		slow_number_t *jn = (slow_number_t*)malloc(sizeof(slow_number_t));
-		slow_init_number(jn, 0);
-		if ((ret = slow_parse_number(src, jn)) != SLOW_OK) return ret;
-		pb->type = ST_NUMBER;
-		pb->p = (void*)jn;
+		slow_number_t *psn = (slow_number_t*)malloc(sizeof(slow_number_t));
+		slow_init_number(psn, 0);
+		if ((ret = slow_parse_number(pss, psn)) != SLOW_OK) return ret;
+		psb->type = ST_NUMBER;
+		psb->p = (void*)psn;
 	}
 	else if (jsonType == ST_STRING)
 	{

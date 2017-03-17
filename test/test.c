@@ -13,10 +13,20 @@
 static int total = 0;
 static int pass = 0;
 
+/*
+ * base function. 
+ */
+
 void test_eq_int(int expect, int actual)
 {
 	total++;
 	if (expect == actual) pass++;
+}
+
+void test_uneq_int(int expect, int actual)
+{
+	total++;
+	if (expect != actual) pass++;
 }
 
 void test_eq_double(double expect, double actual)
@@ -31,6 +41,13 @@ void test_eq_string(const char* expect, const char* actual, int len)
 	if (memcmp(expect, actual, len) == 0) pass++;
 }
 
+void test_unpass_parse(const char* s)
+{
+	slow_base_t sb;
+	slow_init_base(&sb);
+	test_uneq_int(SLOW_OK, slow_parse(s, &sb));
+}
+
 int test_malloc_string(char** s, const char* str)
 {
 	if (s == NULL || str == NULL) return -1;
@@ -41,100 +58,42 @@ int test_malloc_string(char** s, const char* str)
 	return 0;
 }
 
-void test_parse_null()
+/*
+ * test parse type function.
+ */
+
+void test_pass_parse_null(const char* s)
 {
-	total++;
-	char* s1 = NULL;
-	if (test_malloc_string(&s1, "null") != 0) return;
-	char* tmp1 = s1;
-	total++;
-	char* s2 = NULL;
-	if (test_malloc_string(&s2, "nul") != 0) return;
-	char* tmp2 = s2;
-	total++;
-	char* s3 = NULL;
-	if (test_malloc_string(&s3, "nxll") != 0) return;
-	char* tmp3 = s3;
-	total++;
-	char* s4 = NULL;
-	if (test_malloc_string(&s4, "nullxxx") != 0) return;
-	char* tmp4 = s4;
-
-	slow_null_t jn;
-	slow_init_null(&jn);
-	if (slow_parse_null(&s1, &jn) == 0) pass++;
-	if (slow_parse_null(&s2, &jn) != 0) pass++;
-	if (slow_parse_null(&s3, &jn) != 0) pass++;
-	if (slow_parse_null(&s4, &jn) == 0) pass++;
-
-	free(tmp1);
-	free(tmp2);
-	free(tmp3);
-	free(tmp4);
+	slow_base_t sb;
+	slow_init_base(&sb);
+	test_eq_int(SLOW_OK, slow_parse(s, &sb));
+	test_eq_int(ST_NULL, sb.type);
+	test_eq_int(1, ((slow_null_t*)sb.p)->flag);
 }
 
-void test_parse_true()
+void test_parse_null()
 {
-	total++;
-	char* s1 = NULL;
-	if (test_malloc_string(&s1, "true") != 0) return;
-	char* tmp1 = s1;
-	total++;
-	char* s2 = NULL;
-	if (test_malloc_string(&s2, "tru") != 0) return;
-	char* tmp2 = s2;
-	total++;
-	char* s3 = NULL;
-	if (test_malloc_string(&s3, "trxe") != 0) return;
-	char* tmp3 = s3;
-	total++;
-	char* s4 = NULL;
-	if (test_malloc_string(&s4, "truexx") != 0) return;
-	char* tmp4 = s4;
+	test_pass_parse_null("null");
+	test_pass_parse_null("nullllll");
+	test_unpass_parse("nul");
+	test_unpass_parse("nxll");
+}
 
-	slow_true_t jt;
-	slow_init_true(&jt);
-	if (slow_parse_true(&s1, &jt) == 0) pass++;
-	if (slow_parse_true(&s2, &jt) != 0) pass++;
-	if (slow_parse_true(&s3, &jt) != 0) pass++;
-	if (slow_parse_true(&s4, &jt) == 0) pass++;
-
-	free(tmp1);
-	free(tmp2);
-	free(tmp3);
-	free(tmp4);
+void test_pass_parse_false(const char* s)
+{
+	slow_base_t sb;
+	slow_init_base(&sb);
+	test_eq_int(SLOW_OK, slow_parse(s, &sb));
+	test_eq_int(ST_FALSE, sb.type);
+	test_eq_int(1, ((slow_false_t*)sb.p)->flag);
 }
 
 void test_parse_false()
 {
-	total++;
-	char* s1 = NULL;
-	if (test_malloc_string(&s1, "false") != 0) return;
-	char* tmp1 = s1;
-	total++;
-	char* s2 = NULL;
-	if (test_malloc_string(&s2, "flase") != 0) return;
-	char* tmp2 = s2;
-	total++;
-	char* s3 = NULL;
-	if (test_malloc_string(&s3, "fals") != 0) return;
-	char* tmp3 = s3;
-	total++;
-	char* s4 = NULL;
-	if (test_malloc_string(&s4, "falsee") != 0) return;
-	char* tmp4 = s4;
-
-	slow_false_t jf;
-	slow_init_false(&jf);
-	if (slow_parse_false(&s1, &jf) == 0) pass++;
-	if (slow_parse_false(&s2, &jf) != 0) pass++;
-	if (slow_parse_false(&s3, &jf) != 0) pass++;
-	if (slow_parse_false(&s4, &jf) == 0) pass++;
-
-	free(tmp1);
-	free(tmp2);
-	free(tmp3);
-	free(tmp4);
+	test_pass_parse_false("false");
+	test_pass_parse_false("falseeeeee");
+	test_unpass_parse("fxlse");
+	test_unpass_parse("fals");
 }
 
 void test_number(const char* sn, double d)
@@ -530,8 +489,8 @@ void test_to_string()
 int main()
 {
 	test_parse_null();
-	test_parse_true();
 	test_parse_false();
+	/*
 	test_parse_number();
 	test_parse_string();
 	test_parse_base();
@@ -540,6 +499,6 @@ int main()
 	test_parse_array();
 
 	test_to_string();
-
+	*/
 	printf("total: %d pass: %d\n", total, pass);
 }
