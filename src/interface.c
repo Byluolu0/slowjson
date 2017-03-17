@@ -2,17 +2,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "interface.h"
 #include "common.h"
 
 int slow_raw2object(char* s, slow_object_t *jo)
 {
-	if (s == NULL || jo == NULL) return SLOW_NULL_PTR;
+	assert(s != NULL);
+	assert(jo != NULL);
+
+	int ret;
 
 	char* temp = NULL;
-	if (slow_remove_useless(s, &temp) != 0) return -1;
+	slow_remove_useless(s, &temp);
 	char* freeTemp = temp;
-	if (slow_parse_object(&temp, jo) != 0) return -1;
+	if ((ret = slow_parse_object(&temp, jo)) != SLOW_OK) return ret;
 	
 	free(freeTemp);
 
@@ -21,65 +25,54 @@ int slow_raw2object(char* s, slow_object_t *jo)
 
 int slow_raw2array(char* s, slow_array_t* ja)
 {
-	if (s == NULL || ja == NULL) return SLOW_NULL_PTR;
+	assert(s != NULL);
+	assert(ja != NULL);
 
-	if (slow_parse_array(&s, ja) != 0) return -1;
+	int ret;
+
+	if ((ret = slow_parse_array(&s, ja)) != SLOW_OK) return ret;
 	
 	return SLOW_OK;
 }
 
 int slow_object2raw(char** s, slow_object_t* jo)
 {
-	if (jo == NULL) return SLOW_NULL_PTR;
+	assert(jo != NULL);
 
-	slow_ret_string_t jrs;
-	slow_init_ret_string(&jrs);
-	if (slow_object2string(jo, &jrs) != 0)
+	int ret;
+
+	slow_string_t ps;
+	slow_init_string(&ps);
+	if ((ret = slow_object2string(jo, &ps)) != SLOW_OK)
 	{
-		slow_release_ret_string(&jrs);
-		return -1;
+		slow_release_string(&ps);
+		return ret;
 	}
-	if (slow_end2string(&jrs) != 0)
-	{
-		slow_release_ret_string(&jrs);
-		return -1;
-	}
-	char* temp = (char*)malloc(jrs.offset);
-	if (temp == NULL)
-	{
-		slow_release_ret_string(&jrs);
-		return -1;
-	}
-	memcpy(temp, jrs.p, jrs.offset);
+	slow_string_pushc(&ps, '\0');
+	char* temp = (char*)malloc(ps.offset);
+	memcpy(temp, ps.p, ps.offset);
 	*s = temp;
-	slow_release_ret_string(&jrs);
+	slow_release_string(&ps);
 	return SLOW_OK;
 }
 
 int slow_array2raw(char** s, slow_array_t* ja)
 {
-	if (ja == NULL) return SLOW_NULL_PTR;
+	assert(ja != NULL);
 
-	slow_ret_string_t jrs;
-	slow_init_ret_string(&jrs);
-	if (slow_array2string(ja, &jrs) != 0)
+	int ret;
+
+	slow_string_t ps;
+	slow_init_string(&ps);
+	if ((ret = slow_array2string(ja, &ps)) != SLOW_OK)
 	{
-		slow_release_ret_string(&jrs);
-		return -1;
+		slow_release_string(&ps);
+		return ret;
 	}
-	if (slow_end2string(&jrs) != 0)
-	{
-		slow_release_ret_string(&jrs);
-		return -1;
-	}
-	char* temp = (char*)malloc(jrs.offset);
-	if (temp == NULL)
-	{
-		slow_release_ret_string(&jrs);
-		return -1;
-	}
-	memcpy(temp, jrs.p, jrs.offset);
+	slow_string_pushc(&ps, '\0');
+	char* temp = (char*)malloc(ps.offset);
+	memcpy(temp, ps.p, ps.offset);
 	*s = temp;
-	slow_release_ret_string(&jrs);
+	slow_release_string(&ps);
 	return SLOW_OK;
 }

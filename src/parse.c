@@ -4,19 +4,19 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include "common.h"
 #include "parse.h"
 #include "json.h"
 
 // ÒÆ³ýÎÞÓÃ×Ö·û
-int slow_remove_useless(const char* src, char** dst)
+void slow_remove_useless(const char* src, char** dst)
 {
-	if (src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
 
 	int srcLen = strlen(src);
 	char* temp = (char*)malloc(srcLen + 1);
-	if (temp == NULL) return -1;
 	*dst = temp;
 	while (*src)
 	{
@@ -28,82 +28,64 @@ int slow_remove_useless(const char* src, char** dst)
 		src++;
 	}
 	*temp = '\0';
-	return SLOW_OK;
 }
 
-int slow_parse_null(char** src, slow_null_t* objNull)
+int slow_parse_null(char** src, slow_null_t* pn)
 {
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(pn != NULL);
 
-	if (slow_valid_null(*src) != 0) return -1;
+	char* temp = *src;
+
+	int srcLen = strlen(temp);
+	if (srcLen < 4) return SLOW_INVALID_VALUE;
+	if (temp[0] != 'n' || temp[1] != 'u' || temp[2] != 'l' || temp[3] != 'l') return SLOW_INVALID_VALUE;
 	
-	objNull->flag = 1;
+	pn->flag = 1;
 	*src += 4;
 	return SLOW_OK;
 }
 
-int slow_valid_null(char* src)
+int slow_parse_true(char** src, slow_true_t* pt)
 {
-	if (src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(pt != NULL);
 
-	int srcLen = strlen(src);
-	if (srcLen < 4) return -1;
-	
-	if (src[0] != 'n' || src[1] != 'u' || src[2] != 'l' || src[3] != 'l') return -1;
+	char* temp = *src;
 
-	return SLOW_OK;
-}
+	int srcLen = strlen(temp);
+	if (srcLen < 4) return SLOW_INVALID_VALUE;
+	if (temp[0] != 't' || temp[1] != 'r' || temp[2] != 'u' || temp[3] != 'e') return SLOW_INVALID_VALUE;
 
-
-int slow_parse_true(char** src, slow_true_t* objTrue)
-{
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
-
-	if (slow_valid_true(*src) != 0) return -1;
-
-	objTrue->flag = 1;
+	pt->flag = 1;
 	*src += 4;
 	return SLOW_OK;
 }
 
-int slow_valid_true(char* src) 
+int slow_parse_false(char** src, slow_false_t* pf)
 {
-	if (src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(pf != NULL);
 
-	int srcLen = strlen(src);
-	if (srcLen < 4) return -1;
+	char* temp = *src;
 
-	if (src[0] != 't' || src[1] != 'r' || src[2] != 'u' || src[3] != 'e') return -1;
+	int srcLen = strlen(temp);
+	if (srcLen < 5) return SLOW_INVALID_VALUE;
+	if (temp[0] != 'f' || temp[1] != 'a' || temp[2] != 'l' || temp[3] != 's' || temp[4] != 'e') return SLOW_INVALID_VALUE;
 
-	return SLOW_OK;
-}
-
-int slow_parse_false(char** src, slow_false_t* objFalse)
-{
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
-
-	if (slow_valid_false(*src) != 0) return -1;
-
-	objFalse->flag = 1;
+	pf->flag = 1;
 	*src += 5;
 	return SLOW_OK;
 }
 
-int slow_valid_false(char* src)
+int slow_parse_number(char** src, slow_number_t* pn)
 {
-	if (src == NULL) return SLOW_NULL_PTR;
-
-	int srcLen = strlen(src);
-	if (srcLen < 5) return -1;
-
-	if (src[0] != 'f' || src[1] != 'a' || src[2] != 'l' || src[3] != 's' || src[4] != 'e') return -1;
-
-	return SLOW_OK;
-}
-
-int slow_parse_number(char** src, slow_number_t* psn)
-{
-	if (*src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(pn != NULL);
 
 	char* temp = *src;
 	if (*temp == '-') temp++;
@@ -135,24 +117,24 @@ int slow_parse_number(char** src, slow_number_t* psn)
 	errno = 0;
 	double d = strtod(*src, NULL);
 	if (errno == ERANGE) return SLOW_INVALID_VALUE;
-	psn->d = d;
+	pn->d = d;
 	*src = temp;
 	return SLOW_OK;
 }
 
 int slow_parse_string(char** src, slow_string_t* ps)
 {
-	if (src == NULL || *src == NULL || ps == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(ps != NULL);
 
-	if (*src != '\"') return SLOW_INVALID_VALUE;
-
-	int ret = SLOW_UNKNOWN;
 	char* temp = *src;
+	if (*temp != '\"') return SLOW_INVALID_VALUE;
+	temp++;
 	for (;;)
 	{
 		if (*temp == '\"')
 		{
-			slow_string_push(ps, *temp);
 			temp++;
 			*src = temp;
 			return SLOW_OK;
@@ -160,47 +142,53 @@ int slow_parse_string(char** src, slow_string_t* ps)
 		else if (*temp == '\\')
 		{
 			temp++;
-			if (*temp == '\\') slow_string_push(ps, '\\');
-			else if (*temp == '\"') slow_string_push(ps, '\"');
-			else if (*temp == '/') slow_string_push(ps, '/');
- 			else if (*temp == 'r') slow_string_push(ps, '\r');
-			else if (*temp == 'n') slow_string_push(ps, '\n');
-			else if (*temp == 't') slow_string_push(ps, '\t');
-			else if (*temp == 'b') slow_string_push(ps, '\b');
-			else if (*temp == 'f') slow_string_push(ps, '\f');
+			if (*temp == '\\') slow_string_pushc(ps, '\\');
+			else if (*temp == '\"') slow_string_pushc(ps, '\"');
+			else if (*temp == '/') slow_string_pushc(ps, '/');
+ 			else if (*temp == 'r') slow_string_pushc(ps, '\r');
+			else if (*temp == 'n') slow_string_pushc(ps, '\n');
+			else if (*temp == 't') slow_string_pushc(ps, '\t');
+			else if (*temp == 'b') slow_string_pushc(ps, '\b');
+			else if (*temp == 'f') slow_string_pushc(ps, '\f');
 			else if (*temp == 'u')
 			{
 				//todo
 			}
 		}
 		else if (*temp == '\0') return SLOW_INVALID_VALUE;
-		else slow_string_push(ps, *temp);
+		else slow_string_pushc(ps, *temp);
 		temp++;
 	}
 }
 
 int slow_parse_kv(char** src, slow_kv_t* pkv)
 {
-	if (src == NULL || *src == NULL || pkv == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(pkv != NULL);
+
+	int ret;
 
 	if (slow_check_type(*src) != ST_STRING) return SLOW_INVALID_VALUE;
-	int ret = slow_parse_string(src, &pkv->key);
-	if (ret != SLOW_OK) return ret;
+	if ((ret = slow_parse_string(src, &pkv->key)) != SLOW_OK) return ret;
 
 	if (slow_check_type(*src) != ST_COLON) return SLOW_INVALID_VALUE;
 	*src += 1;
 
-	ret = slow_parse_base(src, &pkv->value);
-	if (ret != SLOW_OK) return ret;
+	if ((ret = slow_parse_base(src, &pkv->value)) != SLOW_OK) return ret;
 
 	return SLOW_OK;
 }
 
-int slow_parse_object(char** src, slow_object_t* ptrObject)
+int slow_parse_object(char** src, slow_object_t* po)
 {
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(po != NULL);
 
-	if (slow_check_type(*src) != ST_OBJECT) return -1;
+	int ret;
+
+	if (slow_check_type(*src) != ST_OBJECT) return SLOW_INVALID_VALUE;
 	*src += 1;
 
 	if (slow_check_type(*src) == ST_OBJECT_END)
@@ -212,21 +200,16 @@ int slow_parse_object(char** src, slow_object_t* ptrObject)
 	while (1)
 	{
 		slow_kv_list_t* node = (slow_kv_list_t*)malloc(sizeof(slow_kv_list_t));
-		if (node == NULL)
-		{
-			slow_release_object(ptrObject);
-			return -1;
-		}
-
-		if (slow_parse_kv(src, &(node->node)) != 0)
+		slow_init_kv_list(node);
+		if ((ret = slow_parse_kv(src, &node->node)) != SLOW_OK)
 		{
 			free(node);
-			slow_release_object(ptrObject);
-			return -1;
+			slow_release_object(po);
+			return ret;
 		}
 
-		node->next = ptrObject->next;
-		ptrObject->next = node;
+		node->next = po->next;
+		po->next = node;
 
 		if (slow_check_type(*src) == ST_DOT)
 		{
@@ -240,18 +223,22 @@ int slow_parse_object(char** src, slow_object_t* ptrObject)
 		}
 		else
 		{
-			slow_release_object(ptrObject);
-			return -1;
+			slow_release_object(po);
+			return SLOW_INVALID_VALUE;
 		}
 	}
 	return SLOW_OK;
 }
 
-int slow_parse_array(char** src, slow_array_t* ptrArray)
+int slow_parse_array(char** src, slow_array_t* pa)
 {
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+	assert(pa != NULL);
 
-	if (slow_check_type(*src) != ST_ARRAY) return -1;
+	int ret;
+
+	if (slow_check_type(*src) != ST_ARRAY) return SLOW_INVALID_VALUE;
 	*src += 1;
 
 	if (slow_check_type(*src) == ST_ARRAY_END)
@@ -263,11 +250,10 @@ int slow_parse_array(char** src, slow_array_t* ptrArray)
 	while (1)
 	{
 		slow_base_list_t* jbl = (slow_base_list_t*)malloc(sizeof(slow_base_list_t));
-		if (jbl == NULL) return -1;
-
-		if (slow_parse_base(src, &(jbl->node)) != 0) return -1;
-		jbl->next = ptrArray->next;
-		ptrArray->next = jbl;
+		slow_init_base_list(jbl);
+		if ((ret = slow_parse_base(src, &jbl->node)) != SLOW_OK) return ret;
+		jbl->next = pa->next;
+		pa->next = jbl;
 
 		if (slow_check_type(*src) == ST_DOT)
 		{
@@ -281,8 +267,8 @@ int slow_parse_array(char** src, slow_array_t* ptrArray)
 		}
 		else
 		{
-			slow_release_array(ptrArray);
-			return -1;
+			slow_release_array(pa);
+			return SLOW_INVALID_VALUE;
 		}
 	}
 	return SLOW_OK;
@@ -290,7 +276,7 @@ int slow_parse_array(char** src, slow_array_t* ptrArray)
 
 int slow_check_type(char* src)
 {
-	if (src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
 
 	if (*src == 'n') return ST_NULL;
 	else if (*src == 'f') return ST_FALSE;
@@ -306,106 +292,102 @@ int slow_check_type(char* src)
 	else return ST_NONE;
 }
 
-int slow_parse_base(char** src, slow_base_t* objBase)
+int slow_parse_base(char** src, slow_base_t* pb)
 {
-	if (src == NULL || *src == NULL) return SLOW_NULL_PTR;
+	assert(src != NULL);
+	assert(*src != NULL);
+
+	int ret;
 
 	int jsonType = slow_check_type(*src);
 	if (jsonType == ST_NULL)
 	{
 		slow_null_t *jn = (slow_null_t*)malloc(sizeof(slow_null_t));
-		if (jn == NULL) return -1;
-		if (slow_parse_null(src, jn) != 0) return -1;
-		objBase->type = ST_NULL;
-		objBase->p = (void*)jn;
+		slow_init_null(jn);
+		if ((ret = slow_parse_null(src, jn)) != SLOW_OK) return ret;
+		pb->type = ST_NULL;
+		pb->p = (void*)jn;
 	}
 	else if (jsonType == ST_FALSE)
 	{
 		slow_false_t *jf = (slow_false_t*)malloc(sizeof(slow_false_t));
-		if (jf == NULL) return -1;
-		if (slow_parse_false(src, jf) != 0) return -1;
-		objBase->type = ST_FALSE;
-		objBase->p = (void*)jf;
+		slow_init_false(jf);
+		if ((ret = slow_parse_false(src, jf)) != SLOW_OK) return ret;
+		pb->type = ST_FALSE;
+		pb->p = (void*)jf;
 	}
 	else if (jsonType == ST_TRUE)
 	{
 		slow_true_t *jt = (slow_true_t*)malloc(sizeof(slow_true_t));
-		if (jt == NULL) return -1;
-		if (slow_parse_true(src, jt) != 0) return -1;
-		objBase->type = ST_TRUE;
-		objBase->p = (void*)jt;
+		slow_init_true(jt);
+		if ((ret = slow_parse_true(src, jt)) != SLOW_OK) return ret;
+		pb->type = ST_TRUE;
+		pb->p = (void*)jt;
 	}
 	else if (jsonType == ST_NUMBER)
 	{
 		slow_number_t *jn = (slow_number_t*)malloc(sizeof(slow_number_t));
-		if (jn == NULL) return -1;
-		if (slow_parse_number(src, jn) != 0) return -1;
-		objBase->type = ST_NUMBER;
-		objBase->p = (void*)jn;
+		slow_init_number(jn, 0);
+		if ((ret = slow_parse_number(src, jn)) != SLOW_OK) return ret;
+		pb->type = ST_NUMBER;
+		pb->p = (void*)jn;
 	}
 	else if (jsonType == ST_STRING)
 	{
 		slow_string_t *ps = (slow_string_t*)malloc(sizeof(slow_string_t));
-		if (ps == NULL) return SLOW_MOMERY_ERROR;
-		int ret = slow_init_string(ps);
-		if (ret != SLOW_OK)
-		{
-			slow_release_string(ps);
-			return ret;
-		}
-		ret = slow_parse_string(src, ps);
-		if (ret != SLOW_OK)
+		slow_init_string(ps);
+		if ((ret = slow_parse_string(src, ps)) != SLOW_OK)
 		{
 			slow_release_string(ps);
 			return ret;
 		}
 
-		objBase->type = ST_STRING;
-		objBase->p = (void*)ps;
+		pb->type = ST_STRING;
+		pb->p = (void*)ps;
 	}
 	else if (jsonType == ST_OBJECT)
 	{
 		slow_object_t *jo = (slow_object_t*)malloc(sizeof(slow_object_t));
-		if (jo == NULL) return -1;
 		slow_init_object(jo);
-		if (slow_parse_object(src, jo) != 0) return -1;
-		objBase->type = ST_OBJECT;
-		objBase->p = (void*)jo;
+		if ((ret = slow_parse_object(src, jo)) != SLOW_OK) return ret;
+		pb->type = ST_OBJECT;
+		pb->p = (void*)jo;
 	}
 	else if (jsonType == ST_ARRAY)
 	{
 		slow_array_t *ja = (slow_array_t*)malloc(sizeof(slow_array_t));
-		if (ja == NULL) return -1;
 		slow_init_array(ja);
-		if (slow_parse_array(src, ja) != 0) return -1;
-		objBase->type = ST_ARRAY;
-		objBase->p = (void*)ja;
+		if ((ret = slow_parse_array(src, ja)) != SLOW_OK) return ret;
+		pb->type = ST_ARRAY;
+		pb->p = (void*)ja;
 	}
 	else
 	{
-		return -1;
+		return SLOW_UNKNOWN_TYPE;
 	}
 	return SLOW_OK;
 }
 
 int slow_cmp_string(slow_string_t* s, const char* str)
 {
-	if (s == NULL || str == NULL) return SLOW_NULL_PTR;
+	assert(s != NULL);
+	assert(str != NULL);
 
-	int len = strlen(str);
-	if (s->len != len) return -1;
+	return strcmp(s->p, str);
+}
 
-	if (strcmp(s->p, str) != 0) return -1;
-
-	return SLOW_OK;
+int slow_cmp_string_len(slow_string_t* s, const char* str, int len)
+{
+	assert(s != NULL);
+	assert(str != NULL);
+	assert(len > 0);
+	return memcmp(s->p, str, len);
 }
 
 int slow_cmp_number(slow_number_t* n, double d)
 {
-	if (n == NULL) return SLOW_NULL_PTR;
-
-	if (fabs(n->d - d) > ACCURACY) return -1;
-
+	assert(n != NULL);
+	if (fabs(n->d - d) > ACCURACY) return SLOW_UNEQUAL;
 	return SLOW_OK;
 }
 

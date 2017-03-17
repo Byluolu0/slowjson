@@ -91,33 +91,41 @@ struct slow_array_s
 };
 typedef struct slow_array_s slow_array_t;
 
-void slow_init_null(slow_null_t* ptrNull);
-void slow_init_false(slow_false_t* ptrFalse);
-void slow_init_true(slow_true_t* ptrTrue);
-void slow_init_number(slow_number_t* ptrNumber, double d);
+void slow_init_null(slow_null_t* pn);
+void slow_init_false(slow_false_t* pf);
+void slow_init_true(slow_true_t* pt);
+void slow_init_number(slow_number_t* pn, double d);
 void slow_init_string(slow_string_t* ps);
-void slow_init_object(slow_object_t* ptrObject);
-void slow_init_array(slow_array_t* ptrArray);
+void slow_init_object(slow_object_t* po);
+void slow_init_array(slow_array_t* pa);
+void slow_init_kv(slow_kv_t* pkv);
+void slow_init_kv_list(slow_kv_list_t* pkvl);
+void slow_init_base(slow_base_t* pb);
+void slow_init_base_list(slow_base_list_t* pbl);
+
 void slow_string_check_size(slow_string_t* ps, int size);
+void slow_string_pushs_len(slow_string_t* ps, const char* s, int len);
+void slow_string_pushs(slow_string_t* ps, const char* s);
+void slow_string_pushc(slow_string_t* ps, char ch);
 
-void slow_string_push(slow_string_t* ps, const char* s);
+int slow_object_get_base(slow_object_t* po, const char* k, slow_base_t** b);
+int slow_object_get_null(slow_object_t* po, const char* k, int* n);
+int slow_object_get_bool(slow_object_t* po, const char* k, int* b);
+int slow_object_get_number(slow_object_t* po, const char* k, double* d);
+int slow_object_get_string(slow_object_t* po, const char* k, slow_string_t** s);
+int slow_object_get_object(slow_object_t* po, const char* k, slow_object_t** o);
+int slow_object_get_array(slow_object_t* po, const char* k, slow_array_t** a);
 
-int slow_object_get_base(slow_object_t* ptrObject, const char* k, slow_base_t** b);
-int slow_object_get_null(slow_object_t* ptrObject, const char* k, int* n);
-int slow_object_get_bool(slow_object_t* ptrObject, const char* k, int* b);
-int slow_object_get_number(slow_object_t* ptrObject, const char* k, double* d);
-int slow_object_get_string(slow_object_t* ptrObject, const char* k, slow_string_t** s);
-int slow_object_get_object(slow_object_t* ptrObject, const char* k, slow_object_t** o);
-int slow_object_get_array(slow_object_t* ptrObject, const char* k, slow_array_t** a);
+int slow_array_get_size(slow_array_t* pa);
+int slow_array_get_by_index(slow_array_t* pa, int index, slow_base_t** b);
 
-int slow_array_get_size(slow_array_t* ptrArray);
-int slow_array_get_by_index(slow_array_t* ptrArray, int index, slow_base_t** b);
-
-int slow_release_string(slow_string_t* ptrString);
-int slow_release_base(slow_base_t* ptrBase);
-int slow_release_kv(slow_kv_t* ptrKeyValue);
-int slow_release_object(slow_object_t* ptrObject);
-int slow_release_array(slow_array_t* ptrArray);
+void slow_release_string(slow_string_t* ps);
+void slow_release_base(slow_base_t* pb);
+void slow_release_base_list(slow_base_list_t* pbl);
+void slow_release_kv(slow_kv_t* pkv);
+void slow_release_kv_list(slow_kv_list_t* pkvl);
+void slow_release_object(slow_object_t* po);
+void slow_release_array(slow_array_t* pa);
 
 
 #endif 

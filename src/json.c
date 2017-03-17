@@ -51,15 +51,59 @@ void slow_init_array(slow_array_t* pa)
 	pa->next = NULL;
 }
 
-void slow_string_push(slow_string_t* ps, const char* s)
+void slow_init_kv(slow_kv_t* pkv)
+{
+	assert(pkv != NULL);
+	slow_init_string(&pkv->key);
+	slow_init_base(&pkv->value);
+}
+
+void slow_init_kv_list(slow_kv_list_t* pkvl)
+{
+	assert(pkvl != NULL);
+	slow_init_kv(&pkvl->node);
+	pkvl->next = NULL;
+}
+
+void slow_init_base(slow_base_t* pb)
+{
+	assert(pb != NULL);
+	pb->type = ST_NONE;
+	pb->p = NULL;
+}
+
+void slow_init_base_list(slow_base_list_t* pbl)
+{
+	assert(pbl != NULL);
+	slow_init_base(&pbl->node);
+	pbl->next = NULL;
+}
+
+void slow_string_pushs_len(slow_string_t* ps, const char* s, int len)
 {
 	assert(ps != NULL);
 	assert(s != NULL);
-	int len = strlen(s);
+	assert(len > 0);
 	slow_string_check_size(ps, len);
 
 	memcpy(ps->p + ps->offset, s, len);
 	ps->offset += len;
+}
+
+void slow_string_pushs(slow_string_t* ps, const char* s)
+{
+	assert(ps != NULL);
+	assert(s != NULL);
+	int len = strlen(s);
+	slow_string_pushs_len(ps, s, len);
+}
+
+void slow_string_pushc(slow_string_t* ps, char ch)
+{
+	assert(ps != NULL);
+	slow_string_check_size(ps, 1);
+	ps->p[ps->offset] = ch;
+	ps->offset += 1;
 }
 
 void slow_string_check_size(slow_string_t* ps, int size)
@@ -71,142 +115,142 @@ void slow_string_check_size(slow_string_t* ps, int size)
 	ps->p = temp;
 }
 
-int slow_object_get_base(slow_object_t* ptrObject, const char* k, slow_base_t** b)
+int slow_object_get_base(slow_object_t* po, const char* k, slow_base_t** b)
 {
-	if (ptrObject == NULL || k == NULL) return SLOW_NULL_PTR;
-
-	slow_kv_list_t* temp = ptrObject->next;
-	while (1)
+	assert(po != NULL);
+	assert(k != NULL);
+	assert(b != NULL);
+	slow_kv_list_t* temp = po->next;
+	while (temp)
 	{
-		if (temp == NULL) return -1;
 		slow_kv_t* node = &temp->node;
 		if (slow_cmp_string(&node->key, k) == 0)
 		{
 			*b = &node->value;
-			return 0;
+			return SLOW_OK;
 		}
 		temp = temp->next;
 	}
-	return SLOW_OK;
+	return SLOW_KEY_NOT_FOUND;
 }
 
-int slow_object_get_null(slow_object_t* ptrObject, const char* k, int* n)
+int slow_object_get_null(slow_object_t* po, const char* k, int* n)
 {
-	if (ptrObject == NULL || k == NULL) return SLOW_NULL_PTR;
+	assert(po != NULL);
+	assert(k != NULL);
 
-	slow_kv_list_t* temp = ptrObject->next;
-	while (1)
+	slow_kv_list_t* temp = po->next;
+	while (temp)
 	{
-		if (temp == NULL) return -1;
 		slow_kv_t* node = &temp->node;
 		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_NULL)
 		{
 			*n = 1;
-			return 0;
+			return SLOW_OK;
 		}
 		temp = temp->next;
 	}
-	return SLOW_OK;
+	return SLOW_KEY_NOT_FOUND;
 }
 
-int slow_object_get_bool(slow_object_t* ptrObject, const char* k, int* b)
+int slow_object_get_bool(slow_object_t* po, const char* k, int* b)
 {
-	if (ptrObject == NULL || k == NULL) return SLOW_NULL_PTR;
+	assert(po != NULL);
+	assert(k != NULL);
 
-	slow_kv_list_t* temp = ptrObject->next;
-	while (1)
+	slow_kv_list_t* temp = po->next;
+	while (temp)
 	{
-		if (temp == NULL) return -1;
 		slow_kv_t* node = &temp->node;
 		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_FALSE)
 		{
 			*b = 0;
-			return 0;
+			return SLOW_OK;
 		}
 		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_TRUE)
 		{
 			*b = 1;
-			return 0;
+			return SLOW_OK;
 		}
 		temp = temp->next;
 	}
-	return SLOW_OK;
+	return SLOW_KEY_NOT_FOUND;
 }
 
-int slow_object_get_number(slow_object_t* ptrObject, const char* k, double* d)
+int slow_object_get_number(slow_object_t* po, const char* k, double* d)
 {
-	if (ptrObject == NULL || k == NULL) return SLOW_NULL_PTR;
+	assert(po != NULL);
+	assert(k != NULL);
 
-	slow_kv_list_t* temp = ptrObject->next;
-	while (1)
+	slow_kv_list_t* temp = po->next;
+	while (temp)
 	{
-		if (temp == NULL) return -1;
 		slow_kv_t* node = &temp->node;
 		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_NUMBER)
 		{
 			*d = ((slow_number_t*)node->value.p)->d;
-			return 0;
+			return SLOW_OK;
 		}
 		temp = temp->next;
 	}
-	return SLOW_OK;
+	return SLOW_KEY_NOT_FOUND;
 }
 
-int slow_object_get_string(slow_object_t* ptrObject, const char* k, slow_string_t** s)
+int slow_object_get_string(slow_object_t* po, const char* k, slow_string_t** ps)
 {
-	if (ptrObject == NULL || k == NULL) return SLOW_NULL_PTR;
+	assert(po != NULL);
+	assert(k != NULL);
 
-	slow_kv_list_t* temp = ptrObject->next;
-	while (1)
+	slow_kv_list_t* temp = po->next;
+	while (temp)
 	{
-		if (temp == NULL) return -1;
 		slow_kv_t* node = &temp->node;
 		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_STRING)
 		{
-			*s = (slow_string_t*)node->value.p;
-			return 0;
+			*ps = (slow_string_t*)node->value.p;
+			return SLOW_OK;
 		}
 		temp = temp->next;
 	}
-	return SLOW_OK;
+	return SLOW_KEY_NOT_FOUND;
 }
 
-int slow_object_get_object(slow_object_t* ptrObject, const char* k, slow_object_t** o)
+int slow_object_get_object(slow_object_t* po, const char* k, slow_object_t** o)
 {
-	if (ptrObject == NULL || k == NULL) return SLOW_NULL_PTR;
+	assert(po != NULL);
+	assert(k != NULL);
 
-	slow_kv_list_t* temp = ptrObject->next;
-	while (1)
+	slow_kv_list_t* temp = po->next;
+	while (temp)
 	{
-		if (temp == NULL) return -1;
 		slow_kv_t* node = &temp->node;
 		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_OBJECT)
 		{
 			*o = (slow_object_t*)node->value.p;
-			return 0;
+			return SLOW_OK;
 		}
 		temp = temp->next;
 	}
-	return SLOW_OK;
+	return SLOW_KEY_NOT_FOUND;
 }
 
-int slow_object_get_array(slow_object_t* ptrObject, const char* k, slow_array_t** a)
+int slow_object_get_array(slow_object_t* po, const char* k, slow_array_t** pa)
 {
-	if (ptrObject == NULL || k == NULL) return SLOW_NULL_PTR;
+	assert(po != NULL);
+	assert(k != NULL);
 
-	slow_kv_list_t* temp = ptrObject->next;
-	while (1)
+	slow_kv_list_t* temp = po->next;
+	while (temp)
 	{
-		if (temp == NULL) return -1;
 		slow_kv_t* node = &temp->node;
 		if (slow_cmp_string(&node->key, k) == 0 && node->value.type == ST_ARRAY)
 		{
-			*a = (slow_array_t*)node->value.p;
-			return 0;
+			*pa = (slow_array_t*)node->value.p;
+			return SLOW_OK;
 		}
 		temp = temp->next;
 	}
-	return SLOW_OK;
+	return SLOW_KEY_NOT_FOUND;
 }
 
 int slow_array_get_size(slow_array_t* ptrArray)
@@ -242,99 +286,103 @@ int slow_array_get_by_index(slow_array_t* ptrArray, int index, slow_base_t** b)
 	return SLOW_ELEMENT_NOT_FOUND;
 }
 
-int slow_release_base(slow_base_t *ptrBase)
+void slow_release_base(slow_base_t *pb)
 {
-	if (ptrBase == NULL) return SLOW_NULL_PTR;
+	assert(pb != NULL);
 
-	if (ptrBase->type == ST_NULL)
+	if (pb->type == ST_NULL)
 	{
-		free((slow_null_t*)ptrBase->p);
+		free((slow_null_t*)pb->p);
 	}
-	else if (ptrBase->type == ST_FALSE)
+	else if (pb->type == ST_FALSE)
 	{
-		free((slow_false_t*)ptrBase->p);
+		free((slow_false_t*)pb->p);
 	}
-	else if (ptrBase->type == ST_TRUE)
+	else if (pb->type == ST_TRUE)
 	{
-		free((slow_true_t*)ptrBase->p);
+		free((slow_true_t*)pb->p);
 	}
-	else if (ptrBase->type == ST_NUMBER)
+	else if (pb->type == ST_NUMBER)
 	{
-		free((slow_number_t*)ptrBase->p);
+		free((slow_number_t*)pb->p);
 	}
-	else if (ptrBase->type == ST_STRING)
+	else if (pb->type == ST_STRING)
 	{
-		free((slow_string_t*)ptrBase->p);
+		free((slow_string_t*)pb->p);
 	}
-	else if (ptrBase->type == ST_KEY_VALUE)
+	else if (pb->type == ST_KEY_VALUE)
 	{
-		slow_kv_t* jkv = (slow_kv_t*)ptrBase->p;
+		slow_kv_t* jkv = (slow_kv_t*)pb->p;
 		slow_release_kv(jkv);
 		free(jkv);
 	}
-	else if (ptrBase->type == ST_OBJECT)
+	else if (pb->type == ST_OBJECT)
 	{
-		slow_object_t* jo = (slow_object_t*)ptrBase->p;
+		slow_object_t* jo = (slow_object_t*)pb->p;
 		slow_release_object(jo);
 		free(jo);
 	}
-	else if (ptrBase->type == ST_ARRAY)
+	else if (pb->type == ST_ARRAY)
 	{
-		slow_array_t* ja = (slow_array_t*)ptrBase->p;
+		slow_array_t* ja = (slow_array_t*)pb->p;
 		slow_release_array(ja);
 		free(ja);
 	}
-	else
-	{
-		return SLOW_TYPE_NOT_FOUND;
-	}
-	return SLOW_OK;
 }
 
-int slow_release_string(slow_string_t* ps)
+void slow_release_base_list(slow_base_list_t* pbl)
 {
-	if (ps == NULL) return SLOW_NULL_PTR;
+	assert(pbl != NULL);
+	slow_release_base(&pbl->node);
+	pbl->next = NULL;
+}
+
+void slow_release_string(slow_string_t* ps)
+{
+	assert(ps != NULL);
 
 	free(ps->p);
 	ps->offset = 0;
 	ps->size = 0;
-	return SLOW_OK;
 }
 
-int slow_release_kv(slow_kv_t* ptrKeyValue)
+void slow_release_kv(slow_kv_t* pkv)
 {
-	if (ptrKeyValue == NULL) return SLOW_NULL_PTR;
-
-	slow_release_base(&(ptrKeyValue->value));
-
-	return SLOW_OK;
+	assert(pkv != NULL);
+	slow_release_string(&pkv->key);
+	slow_release_base(&pkv->value);
 }
 
-int slow_release_object(slow_object_t *ptrObject)
+void slow_release_kv_list(slow_kv_list_t* pkvl)
 {
-	if (ptrObject == NULL) return SLOW_NULL_PTR;
+	assert(pkvl != NULL);
+	slow_release_kv(&pkvl->node);
+	pkvl->next = NULL;
+}
 
-	while (ptrObject->next)
+void slow_release_object(slow_object_t *po)
+{
+	assert(po != NULL);
+
+	while (po->next)
 	{
-		slow_kv_list_t* jkvl = ptrObject->next;
-		ptrObject->next = jkvl->next;
+		slow_kv_list_t* jkvl = po->next;
+		po->next = jkvl->next;
 		slow_release_kv(&(jkvl->node));
 		free(jkvl);
 	}
-	return SLOW_OK;
 }
 
-int slow_release_array(slow_array_t* ptrArray)
+void slow_release_array(slow_array_t* pa)
 {
-	if (ptrArray == NULL) return SLOW_NULL_PTR;
+	assert(pa != NULL);
 
-	while (ptrArray->next)
+	while (pa->next)
 	{
-		slow_base_list_t* jbl = ptrArray->next;
-		ptrArray->next = jbl->next;
-		slow_release_base(&(jbl->node));
+		slow_base_list_t* jbl = pa->next;
+		pa->next = jbl->next;
+		slow_release_base(&jbl->node);
 		free(jbl);
 	}
-	return SLOW_OK;
 }
 

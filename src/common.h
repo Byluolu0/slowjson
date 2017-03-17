@@ -4,7 +4,7 @@
 
 const static double ACCURACY = 0.0000000000000001;
 const static int STRING_INIT_SIZE = 256;
-const static int NUMBER_BIT_SIZE = 22;
+#define NUMBER_BIT_SIZE = 32
 
 enum
 {
@@ -16,6 +16,9 @@ enum
 	SLOW_INVALID_VALUE,
 	SLOW_MOMERY_ERROR,
 	SLOW_PARAM_ERROR,
+	SLOW_UNEQUAL,
+	SLOW_KEY_NOT_FOUND,
+	SLOW_UNKNOWN_TYPE,
 };
 
 #define ISDIGIT(ch) ((ch) >= '0' && (ch) <= '9')
