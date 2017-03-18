@@ -10,8 +10,11 @@
 #include "../src/json.h"
 #include "../src/common.h"
 
-static int total = 0;
-static int pass = 0;
+static int test_total = 0;
+static int test_pass = 0;
+
+#define MAX_SIZE 4096
+char buffer[MAX_SIZE];
 
 /*
  * base function. 
@@ -19,26 +22,26 @@ static int pass = 0;
 
 void test_eq_int(int expect, int actual)
 {
-	total++;
-	if (expect == actual) pass++;
+	test_total++;
+	if (expect == actual) test_pass++;
 }
 
 void test_uneq_int(int expect, int actual)
 {
-	total++;
-	if (expect != actual) pass++;
+	test_total++;
+	if (expect != actual) test_pass++;
 }
 
 void test_eq_double(double expect, double actual)
 {
-	total++;
-	if (fabs(expect - actual) < ACCURACY) pass++;
+	test_total++;
+	if (fabs(expect - actual) < ACCURACY) test_pass++;
 }
 
 void test_eq_string(const char* expect, const char* actual, int len)
 {
-	total++;
-	if (strlen(expect) == len && memcmp(expect, actual, len) == 0) pass++;
+	test_total++;
+	if (strlen(expect) == len && memcmp(expect, actual, len) == 0) test_pass++;
 }
 
 void test_unpass_parse(const char* s)
@@ -359,28 +362,28 @@ void test_parse_array()
 
 void test_to_string()
 {
-	total++;
+	test_total++;
 	slow_null_t jn;
 	slow_init_null(&jn);
 	slow_string_t ps1;
 	slow_init_string(&ps1);
-	if (slow_null2string(&jn, &ps1) == 0 && ps1.offset == 4 && memcmp(ps1.p, "null", 4) == 0) pass++;
+	if (slow_null2string(&jn, &ps1) == 0 && ps1.offset == 4 && memcmp(ps1.p, "null", 4) == 0) test_pass++;
 	slow_release_string(&ps1);
 
-	total++;
+	test_total++;
 	slow_false_t jf;
 	slow_init_false(&jf);
 	slow_string_t ps2;
 	slow_init_string(&ps2);
-	if (slow_false2string(&jf, &ps2) == 0 && ps2.offset == 5 && memcmp(ps2.p, "false", 5) == 0) pass++;
+	if (slow_false2string(&jf, &ps2) == 0 && ps2.offset == 5 && memcmp(ps2.p, "false", 5) == 0) test_pass++;
 	slow_release_string(&ps2);
 
-	total++;
+	test_total++;
 	slow_true_t jt;
 	slow_init_true(&jt);
 	slow_string_t ps3;
 	slow_init_string(&ps3);
-	if (slow_true2string(&jt, &ps3) == 0 && ps3.offset == 4 && memcmp(ps3.p, "true", 4) == 0) pass++;
+	if (slow_true2string(&jt, &ps3) == 0 && ps3.offset == 4 && memcmp(ps3.p, "true", 4) == 0) test_pass++;
 	slow_release_string(&ps3);
 	/*
 	total++;
@@ -391,15 +394,140 @@ void test_to_string()
 	if (slow_number2string(&jn1, &ps4) == 0 && ps4.offset == 11 && memcmp(ps4.p, "12345.12345", 11) == 0) pass++;
 	slow_release_string(&ps4);
 	*/
-	total++;
+	test_total++;
 	slow_string_t js;
 	slow_init_string(&js);
 	slow_string_pushs(&js, "tyuytyr");
 	slow_string_t ps5;
 	slow_init_string(&ps5);
-	if (slow_string2string(&js, &ps5) == 0 && ps5.offset == 9 && memcmp(ps5.p, "\"tyuytyr\"", 9) == 0) pass++;
+	if (slow_string2string(&js, &ps5) == 0 && ps5.offset == 9 && memcmp(ps5.p, "\"tyuytyr\"", 9) == 0) test_pass++;
 	slow_release_string(&ps5);
 }
+
+void test_stringpify()
+{
+	slow_src_t raw_ss;
+	slow_string_t ss;
+
+	slow_null_t sn;
+	slow_init_null(&sn);
+	slow_init_src(&raw_ss, "null");
+	test_eq_int(SLOW_OK, slow_parse_null(&raw_ss, &sn));
+	slow_init_string(&ss);
+	test_eq_int(SLOW_OK, slow_null2string(&sn, &ss));
+	test_eq_string("null", ss.p, ss.offset);
+	slow_release_string(&ss);
+
+	slow_false_t sf;
+	slow_init_false(&sf);
+	slow_init_src(&raw_ss, "false");
+	test_eq_int(SLOW_OK, slow_parse_false(&raw_ss, &sf));
+	slow_init_string(&ss);
+	test_eq_int(SLOW_OK, slow_false2string(&sf, &ss));
+	test_eq_string("false", ss.p, ss.offset);
+	slow_release_string(&ss);
+
+	slow_true_t st;
+	slow_init_true(&st);
+	slow_init_src(&raw_ss, "true");
+	test_eq_int(SLOW_OK, slow_parse_true(&raw_ss, &st));
+	slow_init_string(&ss);
+	test_eq_int(SLOW_OK, slow_true2string(&st, &ss));
+	test_eq_string("true", ss.p, ss.offset);
+	slow_release_string(&ss);
+
+	slow_string_t sstr;
+	slow_init_string(&sstr);
+	slow_init_src(&raw_ss, "\"key13fadf\"");
+	test_eq_int(SLOW_OK, slow_parse_string(&raw_ss, &sstr));
+	slow_init_string(&ss);
+	test_eq_int(SLOW_OK, slow_string2string(&sstr, &ss));
+	test_eq_string("\"key13fadf\"", ss.p, ss.offset);
+	slow_release_string(&ss);
+	slow_release_string(&sstr);
+}
+
+void test_file_parse_stringpify()
+{
+	char* in_name = "in.txt";
+	char* out_name = "out.txt";
+
+	FILE* in_file = NULL;
+	if (fopen_s(&in_file, in_name, "r") != 0 || in_file == NULL)
+	{
+		printf_s("open in_file %s error.\n", in_name);
+		return;
+	}
+
+	FILE* out_file = NULL;
+	if (fopen_s(&out_file, out_name, "w") != 0 || out_file == NULL)
+	{
+		printf_s("open out_file %s error.\n", out_name);
+		return;
+	}
+
+	int in_size = fread(buffer, sizeof(char), MAX_SIZE, in_file);
+
+	if (in_size <= 0)
+	{
+		fclose(in_file);
+		fclose(out_file);
+		printf_s("fread error.\n");
+		return;
+	}
+
+	if (in_size == MAX_SIZE)
+	{
+		fclose(in_file);
+		fclose(out_file);
+		printf_s("in_file too large.\n");
+		return;
+	}
+	buffer[in_size] = '\0';
+
+	slow_base_t sb;
+	slow_init_base(&sb);
+
+	if (slow_parse(buffer, &sb) != SLOW_OK)
+	{
+		slow_release_base(&sb);
+		fclose(in_file);
+		fclose(out_file);
+		printf_s("slow_parse error.\n");
+		return;
+	}
+
+	slow_string_t ss;
+	slow_init_string(&ss);
+	if (slow_base2string(&sb, &ss) != SLOW_OK)
+	{
+		slow_release_base(&sb);
+		slow_release_string(&ss);
+		fclose(in_file);
+		fclose(out_file);
+		printf_s("slow_base2string error.\n");
+		return;
+	}
+
+	int out_size = fwrite(ss.p, sizeof(char), ss.offset, out_file);
+	if (out_size < 0)
+	{
+		slow_release_base(&sb);
+		slow_release_string(&ss);
+		fclose(in_file);
+		fclose(out_file);
+		printf_s("fwrite error.\n");
+		return;
+	}
+
+	slow_release_base(&sb);
+	slow_release_string(&ss);
+	fclose(in_file);
+	fclose(out_file);
+
+	return;
+}
+
 
 int main()
 {
@@ -411,9 +539,7 @@ int main()
 	test_parse_kv();
 	test_parse_object();
 	test_parse_array();
-	/*
-
-	test_to_string();
-	*/
-	printf("total: %d pass: %d\n", total, pass);
+	test_stringpify();
+	test_file_parse_stringpify();
+	printf("test_total: %d test_pass: %d\n", test_total, test_pass);
 }

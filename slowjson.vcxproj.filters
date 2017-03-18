@@ -21,9 +21,6 @@
     <ClInclude Include="src\common.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="src\interface.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="src\stringpify.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -35,17 +32,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\interface.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\json.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\stringpify.c">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="test\file_test.c">
-      <Filter>test</Filter>
     </ClCompile>
     <ClCompile Include="test\test.c">
       <Filter>test</Filter>

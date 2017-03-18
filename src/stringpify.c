@@ -72,46 +72,46 @@ int slow_kv2string(slow_kv_t* pkv, slow_string_t* ps)
 	return SLOW_OK;
 }
 
-int slow_base2string(slow_base_t* pb, slow_string_t* ps)
+int slow_base2string(slow_base_t* psb, slow_string_t* pss)
 {
-	assert(pb != NULL);
-	assert(ps != NULL);
+	assert(psb != NULL);
+	assert(pss != NULL);
 
-	int jsonType = pb->type;
+	int jsonType = psb->type;
 	if (jsonType == ST_NULL)
 	{
-		slow_null_t* jn = (slow_null_t*)pb->p;
-		return slow_null2string(jn, ps);
+		slow_null_t* jn = (slow_null_t*)psb->p;
+		return slow_null2string(jn, pss);
 	}
 	else if (jsonType == ST_FALSE)
 	{
-		slow_false_t* jf = (slow_false_t*)pb->p;
-		return slow_false2string(jf, ps);
+		slow_false_t* jf = (slow_false_t*)psb->p;
+		return slow_false2string(jf, pss);
 	}
 	else if (jsonType == ST_TRUE)
 	{
-		slow_true_t* jt = (slow_true_t*)pb->p;
-		return slow_true2string(jt, ps);
+		slow_true_t* jt = (slow_true_t*)psb->p;
+		return slow_true2string(jt, pss);
 	}
 	else if (jsonType == ST_NUMBER)
 	{
-		slow_number_t* jn = (slow_number_t*)pb->p;
-		return slow_number2string(jn, ps);
+		slow_number_t* jn = (slow_number_t*)psb->p;
+		return slow_number2string(jn, pss);
 	}
 	else if (jsonType == ST_STRING)
 	{
-		slow_string_t* psrcs = (slow_string_t*)pb->p;
-		return slow_string2string(psrcs, ps);
+		slow_string_t* psrcs = (slow_string_t*)psb->p;
+		return slow_string2string(psrcs, pss);
 	}
 	else if (jsonType == ST_OBJECT)
 	{
-		slow_object_t* jo = (slow_object_t*)ps->p;
-		return slow_object2string(jo, ps);
+		slow_object_t* jo = (slow_object_t*)psb->p;
+		return slow_object2string(jo, pss);
 	}
 	else if (jsonType == ST_ARRAY)
 	{
-		slow_array_t* ja = (slow_array_t*)pb->p;
-		return slow_array2string(ja, ps);
+		slow_array_t* ja = (slow_array_t*)psb->p;
+		return slow_array2string(ja, pss);
 	}
 
 	return SLOW_UNKNOWN_TYPE;

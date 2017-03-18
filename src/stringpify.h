@@ -11,7 +11,7 @@ int slow_true2string(slow_true_t* pt, slow_string_t* ps);
 int slow_number2string(slow_number_t* pn, slow_string_t* ps);
 int slow_string2string(slow_string_t* psrcs, slow_string_t* ps);
 int slow_kv2string(slow_kv_t* pkv, slow_string_t* ps);
-int slow_base2string(slow_base_t* pb, slow_string_t* ps);
+int slow_base2string(slow_base_t* psb, slow_string_t* pss);
 int slow_object2string(slow_object_t* po, slow_string_t* ps);
 int slow_array2string(slow_array_t* pa, slow_string_t* ps);
 
