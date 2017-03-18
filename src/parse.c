@@ -152,20 +152,25 @@ int slow_parse_string(slow_src_t* pss, slow_string_t* ps)
 			pss->offset = offset;
 			return SLOW_OK;
 		}
+		/* '"'如果要作为字符案串中的字符存在，必须转义'\"'，因为'"'是key的始终标志。这里又导致了'\'要作为字符存在必须'\\'。 */
+		/* \r \n \t 作为空白的字符，要作为字符串的一部分，也必须转义。 */
+		
 		else if (json[offset] == '\\')
 		{
 			offset++;
 			if (json[offset] == '\\') slow_string_pushc(ps, '\\');
-			else if (json[offset] == '\"') slow_string_pushc(ps, '\"');
-			else if (json[offset] == '/') slow_string_pushc(ps, '/');
+			else if (json[offset] == '"') slow_string_pushc(ps, '"');
  			else if (json[offset] == 'r') slow_string_pushc(ps, '\r');
 			else if (json[offset] == 'n') slow_string_pushc(ps, '\n');
 			else if (json[offset] == 't') slow_string_pushc(ps, '\t');
+			else if (json[offset] == 'b') slow_string_pushc(ps, '\b');
+			else if (json[offset] == 'f') slow_string_pushc(ps, '\f');
 			else if (json[offset] == 'u')
 			{
 				//todo
 			}
 		}
+		
 		else if (json[offset] == '\0') return SLOW_INVALID_VALUE;
 		else slow_string_pushc(ps, json[offset]);
 		offset++;

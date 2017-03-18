@@ -51,9 +51,28 @@ int slow_string2string(slow_string_t* psrcs, slow_string_t* ps)
 	assert(psrcs != NULL);
 	assert(ps != NULL);
 
-	slow_string_pushc(ps, '\"');
-	slow_string_pushs_len(ps, psrcs->p, psrcs->offset);
-	slow_string_pushc(ps, '\"');
+	slow_string_pushc(ps, '"');
+	const char* p = psrcs->p;
+	int offset = psrcs->offset;
+	int i = 0;
+	for (; i < offset; ++i)
+	{
+		if (p[i] == '\\') slow_string_pushs(ps, "\\\\");
+		else if (p[i] == '"') slow_string_pushs(ps, "\\\"");
+		else if (p[i] == '\r') slow_string_pushs(ps, "\\r");
+		else if (p[i] == '\n') slow_string_pushs(ps, "\\n");
+		else if (p[i] == '\t') slow_string_pushs(ps, "\\t");
+		else if (p[i] == '\b') slow_string_pushs(ps, "\\b");
+		else if (p[i] == '\f') slow_string_pushs(ps, "\\f");
+		/*
+		else if (p[i] == 'u')
+		{
+			// todo
+		}
+		*/
+		else slow_string_pushc(ps, p[i]);
+	}
+	slow_string_pushc(ps, '"');
 
 	return SLOW_OK;
 }
