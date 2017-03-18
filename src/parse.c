@@ -34,7 +34,7 @@ int slow_parse(const char* src, slow_base_t* psb)
 	slow_src_t ss;
 	slow_init_src(&ss, src);
 
-	return slow_parse_base(&src, psb);
+	return slow_parse_base(&ss, psb);
 }
 
 int slow_parse_literal(slow_src_t* pss, const char* literal)
@@ -126,7 +126,7 @@ int slow_parse_number(slow_src_t* pss, slow_number_t* psn)
 	}
 
 	errno = 0;
-	double d = strtod(pss->json[pss->offset], NULL);
+	double d = strtod(pss->json + pss->offset, NULL);
 	if (errno == ERANGE) return SLOW_INVALID_VALUE;
 	psn->d = d;
 	pss->offset = offset;
@@ -298,17 +298,18 @@ int slow_check_type(slow_src_t* pss)
 	assert(pss != NULL);
 
 	const char* json = pss->json;
-	if (*json == 'n') return ST_NULL;
-	else if (*json == 'f') return ST_FALSE;
-	else if (*json == 't') return ST_TRUE;
-	else if (ISDIGIT(*json)) return ST_NUMBER;
-	else if (*json == '"') return ST_STRING;
-	else if (*json == '{') return ST_OBJECT;
-	else if (*json == '[') return ST_ARRAY;
-	else if (*json == ',') return ST_DOT;
-	else if (*json == ':') return ST_COLON;
-	else if (*json == '}') return ST_OBJECT_END;
-	else if (*json == ']') return ST_ARRAY_END;
+	int offset = pss->offset;
+	if (json[offset] == 'n') return ST_NULL;
+	else if (json[offset] == 'f') return ST_FALSE;
+	else if (json[offset] == 't') return ST_TRUE;
+	else if (ISDIGIT(json[offset]) || json[offset] == '-') return ST_NUMBER;
+	else if (json[offset] == '"') return ST_STRING;
+	else if (json[offset] == '{') return ST_OBJECT;
+	else if (json[offset] == '[') return ST_ARRAY;
+	else if (json[offset] == ',') return ST_DOT;
+	else if (json[offset] == ':') return ST_COLON;
+	else if (json[offset] == '}') return ST_OBJECT_END;
+	else if (json[offset] == ']') return ST_ARRAY_END;
 	else return ST_NONE;
 }
 
@@ -394,16 +395,10 @@ int slow_cmp_string(slow_string_t* s, const char* str)
 	assert(s != NULL);
 	assert(str != NULL);
 
-	return strcmp(s->p, str);
+	int len = strlen(str);
+	return (len == s->offset && memcmp(s->p, str, len));
 }
 
-int slow_cmp_string_len(slow_string_t* s, const char* str, int len)
-{
-	assert(s != NULL);
-	assert(str != NULL);
-	assert(len > 0);
-	return memcmp(s->p, str, len);
-}
 
 int slow_cmp_number(slow_number_t* n, double d)
 {

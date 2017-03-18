@@ -37,7 +37,6 @@ int slow_parse_array(slow_src_t* pss, slow_array_t* psa);
 int slow_check_type(slow_src_t* pss);
 
 int slow_cmp_string(slow_string_t* s, const char* str);
-int slow_cmp_string_len(slow_string_t* s, const char* str, int len);
 int slow_cmp_number(slow_number_t* n, double d);
 #endif 
 

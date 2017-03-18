@@ -253,11 +253,11 @@ int slow_object_get_array(slow_object_t* po, const char* k, slow_array_t** pa)
 	return SLOW_KEY_NOT_FOUND;
 }
 
-int slow_array_get_size(slow_array_t* ptrArray)
+int slow_array_get_size(slow_array_t* psa)
 {
-	if (ptrArray == NULL) return 0;
+	assert(psa != NULL);
 
-	slow_base_list_t* temp = ptrArray->next;
+	slow_base_list_t* temp = psa->next;
 	int count = 0;
 	while (temp)
 	{
@@ -267,11 +267,14 @@ int slow_array_get_size(slow_array_t* ptrArray)
 	return count;
 }
 
-int slow_array_get_by_index(slow_array_t* ptrArray, int index, slow_base_t** b)
+int slow_array_get_by_index(slow_array_t* psa, int index, slow_base_t** b)
 {
-	if (ptrArray == NULL) return SLOW_NULL_PTR;
+	assert(psa != NULL);
 
-	slow_base_list_t* temp = ptrArray->next;
+	int array_size = slow_array_get_size(psa);
+	index = array_size - index;
+
+	slow_base_list_t* temp = psa->next;
 	int count = 0;
 	while (temp)
 	{

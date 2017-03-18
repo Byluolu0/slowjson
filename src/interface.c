@@ -6,25 +6,25 @@
 #include "interface.h"
 #include "common.h"
 
-int slow_raw2object(char* s, slow_object_t *jo)
+int slow_raw2object(const char* s, slow_object_t *jo)
 {
 	assert(s != NULL);
 	assert(jo != NULL);
 
 	int ret;
-	if ((ret = slow_parse_object(&s, jo)) != SLOW_OK) return ret;
+	if ((ret = slow_parse(s, jo)) != SLOW_OK) return ret;
 
 	return SLOW_OK;
 }
 
-int slow_raw2array(char* s, slow_array_t* ja)
+int slow_raw2array(const char* s, slow_array_t* ja)
 {
 	assert(s != NULL);
 	assert(ja != NULL);
 
 	int ret;
 
-	if ((ret = slow_parse_array(&s, ja)) != SLOW_OK) return ret;
+	if ((ret = slow_parse(s, ja)) != SLOW_OK) return ret;
 	
 	return SLOW_OK;
 }
