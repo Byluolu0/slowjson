@@ -133,10 +133,59 @@ int slow_parse_number(slow_src_t* pss, slow_number_t* psn)
 	return SLOW_OK;
 }
 
+static int slow_parse_hex4(const char* json, int offset, unsigned int *u)
+{
+	assert(json != NULL);
+	assert(u != NULL);
+	int i = 0;
+	int temp = 0;
+	*u = 0;
+	for (; i < 4; ++i)
+	{
+		*u <<= 4;
+		if (json[i + offset] >= '0' && json[i + offset] <= '9') *u |= json[i + offset] - '0';
+		else if (json[i + offset] >= 'a' && json[i + offset] <= 'f') *u |= json[i + offset] - 'a' + 10;
+		else if (json[i + offset] >= 'A' && json[i + offset] <= 'F') *u |= json[i + offset] - 'A' + 10;
+		else return SLOW_INVALID_VALUE;
+	}
+	return SLOW_OK;
+}
+
+static int slow_unicode2utf8(slow_string_t* pss, unsigned int u)
+{
+	if (u >= 0x0000 && u <= 0x007F)
+	{
+		slow_string_pushc(pss, u & 0xFF);
+	}
+	else if (u >= 0x0080 && u <= 0x07FF)
+	{
+		slow_string_pushc(pss, 0xC0 | ((u >> 6) & 0xFF));
+		slow_string_pushc(pss, 0x80 | (u & 0x3F));
+	}
+	else if (u >= 0x0800 && u <= 0xFFFF)
+	{
+		slow_string_pushc(pss, 0xE0 | ((u >> 12) & 0xFF));
+		slow_string_pushc(pss, 0x80 | ((u >> 6) & 0x3F));
+		slow_string_pushc(pss, 0x80 | (u & 0x3F));
+	}
+	else if (u >= 0x10000 && u <= 0x10FFFF)
+	{
+		slow_string_pushc(pss, 0xF0 | ((u >> 18) & 0xFF));
+		slow_string_pushc(pss, 0x80 | ((u >> 12) & 0x3F));
+		slow_string_pushc(pss, 0x80 | ((u >> 6) & 0x3F));
+		slow_string_pushc(pss, 0x80 | (u & 0x3F));
+	}
+	else return SLOW_INVALID_VALUE;
+	return SLOW_OK;
+}
+
 int slow_parse_string(slow_src_t* pss, slow_string_t* ps)
 {
 	assert(pss != NULL);
 	assert(ps != NULL);
+
+	int ret;
+	unsigned int u, l;
 
 	slow_skip_whitespace(pss);
 
@@ -152,9 +201,6 @@ int slow_parse_string(slow_src_t* pss, slow_string_t* ps)
 			pss->offset = offset;
 			return SLOW_OK;
 		}
-		/* '"'如果要作为字符案串中的字符存在，必须转义'\"'，因为'"'是key的始终标志。这里又导致了'\'要作为字符存在必须'\\'。 */
-		/* \r \n \t 作为空白的字符，要作为字符串的一部分，也必须转义。 */
-		
 		else if (json[offset] == '\\')
 		{
 			offset++;
@@ -165,12 +211,28 @@ int slow_parse_string(slow_src_t* pss, slow_string_t* ps)
 			else if (json[offset] == 't') slow_string_pushc(ps, '\t');
 			else if (json[offset] == 'b') slow_string_pushc(ps, '\b');
 			else if (json[offset] == 'f') slow_string_pushc(ps, '\f');
-			else if (json[offset] == 'u')
+			else if (json[offset] == 'u') 
 			{
-				//todo
+				offset += 1;
+				if ((ret = slow_parse_hex4(json, offset, &u)) != SLOW_OK) return ret;
+				offset += 4;
+				if (u >= 0xD800 && u <= 0xDBFF)
+				{
+					if (json[offset] != '//') return SLOW_INVALID_VALUE;
+					offset += 1;
+					if (json[offset] != 'u') return SLOW_INVALID_VALUE;
+					offset += 1;
+					if ((ret = slow_parse_hex4(json, offset, &l)) != SLOW_OK) return ret;
+					offset += 4;
+					if (l >= 0xDC00 && l <= 0xDFFF)
+					{
+						u = 0x10000 + (u - 0xD800) * 0x400 + (l - 0xDC00);
+					}
+				}
+				if ((ret = slow_unicode2utf8(ps, u)) != SLOW_OK) return SLOW_INVALID_VALUE;
+				continue;
 			}
 		}
-		
 		else if (json[offset] == '\0') return SLOW_INVALID_VALUE;
 		else slow_string_pushc(ps, json[offset]);
 		offset++;

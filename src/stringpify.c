@@ -64,12 +64,6 @@ int slow_string2string(slow_string_t* psrcs, slow_string_t* ps)
 		else if (p[i] == '\t') slow_string_pushs(ps, "\\t");
 		else if (p[i] == '\b') slow_string_pushs(ps, "\\b");
 		else if (p[i] == '\f') slow_string_pushs(ps, "\\f");
-		/*
-		else if (p[i] == 'u')
-		{
-			// todo
-		}
-		*/
 		else slow_string_pushc(ps, p[i]);
 	}
 	slow_string_pushc(ps, '"');
