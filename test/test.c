@@ -1,14 +1,20 @@
+#include "platform.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#ifdef PLATFORM_WINDOWS
+#include <Windows.h>
+#else
+#include <sys/time.h>
+#endif
 
-#include "../src/parse.h"
-#include "../src/stringpify.h"
-#include "../src/json.h"
-#include "../src/common.h"
+#include "parse.h"
+#include "stringpify.h"
+#include "json.h"
+#include "common.h"
 
 static int test_total = 0;
 static int test_pass = 0;
@@ -528,8 +534,66 @@ void test_file_parse_stringpify()
 	return;
 }
 
+void bench(const char* in_name, int count)
+{
+	FILE* in_file = NULL;
+	if (fopen_s(&in_file, in_name, "r") != 0 || in_file == NULL)
+	{
+		printf_s("open in_file %s error.\n", in_name);
+		return;
+	}
 
-int main()
+	int in_size = fread(buffer, sizeof(char), MAX_SIZE, in_file);
+
+	if (in_size <= 0)
+	{
+		fclose(in_file);
+		printf_s("fread error.\n");
+		return;
+	}
+
+	if (in_size == MAX_SIZE)
+	{
+		fclose(in_file);
+		printf_s("in_file too large.\n");
+		return;
+	}
+	buffer[in_size] = '\0';
+	
+	int i = 0;
+	for (; i < count; ++i)
+	{
+		slow_base_t sb;
+		slow_init_base(&sb);
+
+		if (slow_parse(buffer, &sb) != SLOW_OK)
+		{
+			slow_release_base(&sb);
+			fclose(in_file);
+			printf_s("slow_parse error.\n");
+			return;
+		}
+
+		slow_string_t ss;
+		slow_init_string(&ss);
+		if (slow_base2string(&sb, &ss) != SLOW_OK)
+		{
+			slow_release_base(&sb);
+			slow_release_string(&ss);
+			fclose(in_file);
+			printf_s("slow_base2string error.\n");
+			return;
+		}
+
+		slow_release_base(&sb);
+		slow_release_string(&ss);
+	}
+	fclose(in_file);
+
+	return;
+}
+
+void unit_test()
 {
 	test_parse_null();
 	test_parse_false();
@@ -542,4 +606,37 @@ int main()
 	test_stringpify();
 	test_file_parse_stringpify();
 	printf("test_total: %d test_pass: %d\n", test_total, test_pass);
+}
+
+int main(int argc, char** argv)
+{
+	//unit_test();
+	
+	if (argc != 3)
+	{
+		printf("Usage: test <input_file> <count>\n");
+		return 1;
+	}
+	char* in_name = (char*)argv[1];
+	int count = atoi(argv[2]);
+
+#ifdef PLATFORM_WINDOWS
+	DWORD start, stop;
+	start = GetTickCount();
+#else
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
+#endif
+
+	bench(in_name, count);
+
+#ifdef PLATFORM_WINDOWS
+	stop = GetTickCount();
+	printf("time: %ld ms\n", stop - start);
+#else
+	gettimeofday(&end, NULL);
+	int timeuse = 1000000 * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
+	printf("time: %d us\n", timeuse);
+#endif 
+	return 0;
 }

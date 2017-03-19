@@ -30,6 +30,9 @@
     <ClInclude Include="src\parse.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="src\platform.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\json.c">
