@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>F:\WorkPlace\slowjson\src;$(IncludePath)</IncludePath>
+    <IncludePath>F:\WorkPlace\slowjson\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -147,11 +147,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\common.h" />
-    <ClInclude Include="src\json.h" />
-    <ClInclude Include="src\parse.h" />
-    <ClInclude Include="src\platform.h" />
-    <ClInclude Include="src\stringpify.h" />
+    <ClInclude Include="include\common.h" />
+    <ClInclude Include="include\json.h" />
+    <ClInclude Include="include\parse.h" />
+    <ClInclude Include="include\platform.h" />
+    <ClInclude Include="include\stringpify.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\json.c" />

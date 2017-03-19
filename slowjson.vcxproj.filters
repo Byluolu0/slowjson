@@ -18,20 +18,20 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\common.h">
+    <ClInclude Include="include\common.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="src\stringpify.h">
+    <ClInclude Include="include\json.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="src\json.h">
+    <ClInclude Include="include\parse.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="src\parse.h">
+    <ClInclude Include="include\platform.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="src\platform.h">
-      <Filter>src</Filter>
+    <ClInclude Include="include\stringpify.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
