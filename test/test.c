@@ -537,7 +537,7 @@ void test_file_parse_stringpify()
 void bench(const char* in_name, int count)
 {
 	FILE* in_file = NULL;
-	if ((in_file = fopen(in_name, "r")) != NULL || in_file == NULL)
+	if ((in_file = fopen(in_name, "r")) == NULL)
 	{
 		printf("open in_file %s error.\n", in_name);
 		return;
