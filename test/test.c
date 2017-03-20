@@ -459,16 +459,16 @@ void test_file_parse_stringpify()
 	char* out_name = "out.txt";
 
 	FILE* in_file = NULL;
-	if (fopen_s(&in_file, in_name, "r") != 0 || in_file == NULL)
+	if ((in_file = fopen(in_name, "r")) != NULL || in_file == NULL)
 	{
-		printf_s("open in_file %s error.\n", in_name);
+		printf("open in_file %s error.\n", in_name);
 		return;
 	}
 
 	FILE* out_file = NULL;
-	if (fopen_s(&out_file, out_name, "w") != 0 || out_file == NULL)
+	if ((out_file = fopen(out_name, "w")) != NULL || out_file == NULL)
 	{
-		printf_s("open out_file %s error.\n", out_name);
+		printf("open out_file %s error.\n", out_name);
 		return;
 	}
 
@@ -478,7 +478,7 @@ void test_file_parse_stringpify()
 	{
 		fclose(in_file);
 		fclose(out_file);
-		printf_s("fread error.\n");
+		printf("fread error.\n");
 		return;
 	}
 
@@ -486,7 +486,7 @@ void test_file_parse_stringpify()
 	{
 		fclose(in_file);
 		fclose(out_file);
-		printf_s("in_file too large.\n");
+		printf("in_file too large.\n");
 		return;
 	}
 	buffer[in_size] = '\0';
@@ -499,7 +499,7 @@ void test_file_parse_stringpify()
 		slow_release_base(&sb);
 		fclose(in_file);
 		fclose(out_file);
-		printf_s("slow_parse error.\n");
+		printf("slow_parse error.\n");
 		return;
 	}
 
@@ -511,7 +511,7 @@ void test_file_parse_stringpify()
 		slow_release_string(&ss);
 		fclose(in_file);
 		fclose(out_file);
-		printf_s("slow_base2string error.\n");
+		printf("slow_base2string error.\n");
 		return;
 	}
 
@@ -522,7 +522,7 @@ void test_file_parse_stringpify()
 		slow_release_string(&ss);
 		fclose(in_file);
 		fclose(out_file);
-		printf_s("fwrite error.\n");
+		printf("fwrite error.\n");
 		return;
 	}
 
@@ -537,9 +537,9 @@ void test_file_parse_stringpify()
 void bench(const char* in_name, int count)
 {
 	FILE* in_file = NULL;
-	if (fopen_s(&in_file, in_name, "r") != 0 || in_file == NULL)
+	if ((in_file = fopen(in_name, "r")) != NULL || in_file == NULL)
 	{
-		printf_s("open in_file %s error.\n", in_name);
+		printf("open in_file %s error.\n", in_name);
 		return;
 	}
 
@@ -548,14 +548,14 @@ void bench(const char* in_name, int count)
 	if (in_size <= 0)
 	{
 		fclose(in_file);
-		printf_s("fread error.\n");
+		printf("fread error.\n");
 		return;
 	}
 
 	if (in_size == MAX_SIZE)
 	{
 		fclose(in_file);
-		printf_s("in_file too large.\n");
+		printf("in_file too large.\n");
 		return;
 	}
 	buffer[in_size] = '\0';
@@ -570,7 +570,7 @@ void bench(const char* in_name, int count)
 		{
 			slow_release_base(&sb);
 			fclose(in_file);
-			printf_s("slow_parse error.\n");
+			printf("slow_parse error.\n");
 			return;
 		}
 
@@ -581,7 +581,7 @@ void bench(const char* in_name, int count)
 			slow_release_base(&sb);
 			slow_release_string(&ss);
 			fclose(in_file);
-			printf_s("slow_base2string error.\n");
+			printf("slow_base2string error.\n");
 			return;
 		}
 
