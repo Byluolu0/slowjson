@@ -462,14 +462,14 @@ void test_file_parse_stringpify()
 	if ((in_file = fopen(in_name, "r")) != NULL || in_file == NULL)
 	{
 		printf("open in_file %s error.\n", in_name);
-		return;
+		exit(1);
 	}
 
 	FILE* out_file = NULL;
 	if ((out_file = fopen(out_name, "w")) != NULL || out_file == NULL)
 	{
 		printf("open out_file %s error.\n", out_name);
-		return;
+		exit(1);
 	}
 
 	int in_size = fread(buffer, sizeof(char), MAX_SIZE, in_file);
@@ -479,7 +479,7 @@ void test_file_parse_stringpify()
 		fclose(in_file);
 		fclose(out_file);
 		printf("fread error.\n");
-		return;
+		exit(1);
 	}
 
 	if (in_size == MAX_SIZE)
@@ -487,7 +487,7 @@ void test_file_parse_stringpify()
 		fclose(in_file);
 		fclose(out_file);
 		printf("in_file too large.\n");
-		return;
+		exit(1);
 	}
 	buffer[in_size] = '\0';
 
@@ -500,7 +500,7 @@ void test_file_parse_stringpify()
 		fclose(in_file);
 		fclose(out_file);
 		printf("slow_parse error.\n");
-		return;
+		exit(1);
 	}
 
 	slow_string_t ss;
@@ -512,7 +512,7 @@ void test_file_parse_stringpify()
 		fclose(in_file);
 		fclose(out_file);
 		printf("slow_base2string error.\n");
-		return;
+		exit(1);
 	}
 
 	int out_size = fwrite(ss.p, sizeof(char), ss.offset, out_file);
@@ -523,15 +523,13 @@ void test_file_parse_stringpify()
 		fclose(in_file);
 		fclose(out_file);
 		printf("fwrite error.\n");
-		return;
+		exit(1);
 	}
 
 	slow_release_base(&sb);
 	slow_release_string(&ss);
 	fclose(in_file);
 	fclose(out_file);
-
-	return;
 }
 
 void bench(const char* in_name, int count)
@@ -540,7 +538,7 @@ void bench(const char* in_name, int count)
 	if ((in_file = fopen(in_name, "r")) == NULL)
 	{
 		printf("open in_file %s error.\n", in_name);
-		return;
+		exit(1);
 	}
 
 	int in_size = fread(buffer, sizeof(char), MAX_SIZE, in_file);
@@ -549,14 +547,14 @@ void bench(const char* in_name, int count)
 	{
 		fclose(in_file);
 		printf("fread error.\n");
-		return;
+		exit(1);
 	}
 
 	if (in_size == MAX_SIZE)
 	{
 		fclose(in_file);
 		printf("in_file too large.\n");
-		return;
+		exit(1);
 	}
 	buffer[in_size] = '\0';
 	
@@ -571,7 +569,7 @@ void bench(const char* in_name, int count)
 			slow_release_base(&sb);
 			fclose(in_file);
 			printf("slow_parse error.\n");
-			return;
+			exit(1);
 		}
 
 		slow_string_t ss;
@@ -582,15 +580,13 @@ void bench(const char* in_name, int count)
 			slow_release_string(&ss);
 			fclose(in_file);
 			printf("slow_base2string error.\n");
-			return;
+			exit(1);
 		}
 
 		slow_release_base(&sb);
 		slow_release_string(&ss);
 	}
 	fclose(in_file);
-
-	return;
 }
 
 void unit_test()
