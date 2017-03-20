@@ -84,7 +84,14 @@ void slow_string_pushs_len(slow_string_t* ps, const char* s, int len)
 	assert(ps != NULL);
 	assert(s != NULL);
 	assert(len > 0);
-	slow_string_check_size(ps, len);
+	//slow_string_check_size(ps, len);
+
+	if (ps->offset + len > ps->size)
+	{
+		ps->size += ps->size >> 1;
+		char* temp = (char*)realloc(ps->p, ps->size);
+		ps->p = temp;
+	}
 
 	memcpy(ps->p + ps->offset, s, len);
 	ps->offset += len;
@@ -101,7 +108,15 @@ void slow_string_pushs(slow_string_t* ps, const char* s)
 void slow_string_pushc(slow_string_t* ps, char ch)
 {
 	assert(ps != NULL);
-	slow_string_check_size(ps, 1);
+	//slow_string_check_size(ps, 1);
+	
+	if (ps->offset + 1 > ps->size)
+	{
+		ps->size += ps->size >> 1;
+		char* temp = (char*)realloc(ps->p, ps->size);
+		ps->p = temp;
+	}
+
 	ps->p[ps->offset] = ch;
 	ps->offset += 1;
 }
