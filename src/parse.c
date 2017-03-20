@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <errno.h>
 
 #include "common.h"
 #include "parse.h"
@@ -138,7 +139,6 @@ static int slow_parse_hex4(const char* json, int offset, unsigned int *u)
 	assert(json != NULL);
 	assert(u != NULL);
 	int i = 0;
-	int temp = 0;
 	*u = 0;
 	for (; i < 4; ++i)
 	{
@@ -264,9 +264,6 @@ int slow_parse_object(slow_src_t* pss, slow_object_t* pso)
 	assert(pso != NULL);
 
 	int ret;
-
-	const char* json = pss->json;
-	int offset = pss->offset;
 
 	slow_skip_whitespace(pss);
 	if (slow_check_type(pss) != ST_OBJECT) return SLOW_INVALID_VALUE;
