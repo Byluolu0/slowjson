@@ -41,7 +41,7 @@ int slow_number2string(slow_number_t* pn, slow_string_t* ps)
 
 	char buffer[32];
 
-	int len = sprintf(buffer, 32, "%.17g", pn->d);
+	int len = sprintf(buffer, "%.17g", pn->d);
 	slow_string_pushs_len(ps, buffer, len);
 	return SLOW_OK;
 }
