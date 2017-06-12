@@ -283,8 +283,8 @@ int slow_parse_object(slow_src_t* pss, slow_object_t* pso)
 		slow_skip_whitespace(pss);
 		if ((ret = slow_parse_kv(pss, &pskvl->node)) != SLOW_OK)
 		{
-			free(pskvl);
 			slow_release_object(pso);
+			free(pskvl);
 			return ret;
 		}
 
@@ -333,7 +333,13 @@ int slow_parse_array(slow_src_t* pss, slow_array_t* psa)
 		slow_base_list_t* jsbl = (slow_base_list_t*)malloc(sizeof(slow_base_list_t));
 		slow_init_base_list(jsbl);
 		slow_skip_whitespace(pss);
-		if ((ret = slow_parse_base(pss, &jsbl->node)) != SLOW_OK) return ret;
+		if ((ret = slow_parse_base(pss, &jsbl->node)) != SLOW_OK)
+		{
+			slow_release_array(psa);
+			//还没纳入psa，需要单独free
+			free(jsbl);
+			return ret;
+		}
 		jsbl->next = psa->next;
 
 		psa->next = jsbl;
@@ -390,7 +396,11 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 	{
 		slow_null_t *psn = (slow_null_t*)malloc(sizeof(slow_null_t));
 		slow_init_null(psn);
-		if ((ret = slow_parse_null(pss, psn)) != SLOW_OK) return ret;
+		if ((ret = slow_parse_null(pss, psn)) != SLOW_OK)
+		{
+			free(psn);
+			return ret;
+		}
 		psb->type = ST_NULL;
 		psb->p = (void*)psn;
 	}
@@ -398,7 +408,11 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 	{
 		slow_false_t *psf = (slow_false_t*)malloc(sizeof(slow_false_t));
 		slow_init_false(psf);
-		if ((ret = slow_parse_false(pss, psf)) != SLOW_OK) return ret;
+		if ((ret = slow_parse_false(pss, psf)) != SLOW_OK)
+		{
+			free(psf);
+			return ret;
+		}
 		psb->type = ST_FALSE;
 		psb->p = (void*)psf;
 	}
@@ -406,7 +420,11 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 	{
 		slow_true_t *pst = (slow_true_t*)malloc(sizeof(slow_true_t));
 		slow_init_true(pst);
-		if ((ret = slow_parse_true(pss, pst)) != SLOW_OK) return ret;
+		if ((ret = slow_parse_true(pss, pst)) != SLOW_OK)
+		{
+			free(pst);
+			return ret;
+		}
 		psb->type = ST_TRUE;
 		psb->p = (void*)pst;
 	}
@@ -414,7 +432,11 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 	{
 		slow_number_t *psn = (slow_number_t*)malloc(sizeof(slow_number_t));
 		slow_init_number(psn, 0);
-		if ((ret = slow_parse_number(pss, psn)) != SLOW_OK) return ret;
+		if ((ret = slow_parse_number(pss, psn)) != SLOW_OK)
+		{
+			free(psn);
+			return ret;
+		}
 		psb->type = ST_NUMBER;
 		psb->p = (void*)psn;
 	}
@@ -425,6 +447,7 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 		if ((ret = slow_parse_string(pss, ps)) != SLOW_OK)
 		{
 			slow_release_string(ps);
+			free(ps);
 			return ret;
 		}
 
@@ -435,7 +458,11 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 	{
 		slow_object_t *jso = (slow_object_t*)malloc(sizeof(slow_object_t));
 		slow_init_object(jso);
-		if ((ret = slow_parse_object(pss, jso)) != SLOW_OK) return ret;
+		if ((ret = slow_parse_object(pss, jso)) != SLOW_OK)
+		{
+			free(jso);
+			return ret;
+		}
 		psb->type = ST_OBJECT;
 		psb->p = (void*)jso;
 	}
@@ -443,7 +470,13 @@ int slow_parse_base(slow_src_t* pss, slow_base_t* psb)
 	{
 		slow_array_t *jsa = (slow_array_t*)malloc(sizeof(slow_array_t));
 		slow_init_array(jsa);
-		if ((ret = slow_parse_array(pss, jsa)) != SLOW_OK) return ret;
+		if ((ret = slow_parse_array(pss, jsa)) != SLOW_OK)
+		{
+			//slow_parse_array 内部释放
+			//slow_release_array(jsa);
+			free(jsa);
+			return ret;
+		}
 		psb->type = ST_ARRAY;
 		psb->p = (void*)jsa;
 	}
